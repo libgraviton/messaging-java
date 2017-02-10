@@ -1,4 +1,4 @@
-package com.github.libgraviton.messaging;
+package com.github.libgraviton.messaging.consumer;
 
 import com.github.libgraviton.messaging.exception.CannotConsumeMessage;
 

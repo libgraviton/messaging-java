@@ -1,7 +1,7 @@
 package com.github.libgraviton.messaging.strategy.jms;
 
-import com.github.libgraviton.messaging.AcknowledgingConsumer;
-import com.github.libgraviton.messaging.Consumer;
+import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
+import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.MessageAcknowledger;
 import com.github.libgraviton.messaging.exception.CannotAcknowledgeMessage;
 import com.github.libgraviton.messaging.exception.CannotConsumeMessage;

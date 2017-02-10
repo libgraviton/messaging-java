@@ -4,10 +4,10 @@
   <groupId>com.github.libgraviton</groupId>
   <artifactId>messaging</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <name>Messaging Integration Library</name>
   <url>https://github.com/libgraviton/messaging-java</url>
-  <inceptionYear>2015</inceptionYear>
+  <inceptionYear>2017</inceptionYear>
 
   <description>
     A library to simplify the use of message brokers.
@@ -51,9 +51,9 @@
       <version>2.0.1</version>
     </dependency>
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>1.1.6</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.20</version>
     </dependency>
 
     <dependency>

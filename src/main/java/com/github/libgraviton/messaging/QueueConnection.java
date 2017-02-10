@@ -1,5 +1,6 @@
 package com.github.libgraviton.messaging;
 
+import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotCloseConnection;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
@@ -203,7 +204,7 @@ abstract public class QueueConnection {
      *
      * @param consumer The consumer to register. You most likely need to wrap this by a queue system specific consumer.
      *
-     * @throws CannotRegisterConsumer
+     * @throws CannotRegisterConsumer If the consumer cannot be registered.
      */
     abstract protected void registerConsumer(Consumer consumer) throws CannotRegisterConsumer;
 
