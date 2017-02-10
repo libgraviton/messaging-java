@@ -45,8 +45,16 @@ public class RabbitMqConnectionTest {
 
         rabbitFactory = mock(ConnectionFactory.class);
         doReturn(rabbitConnection).when(rabbitFactory).newConnection();
-        connection = new RabbitMqConnection("queue", "exchange", "routingKey", rabbitFactory);
+
+        connection = new RabbitMqConnection.Builder()
+                .queueName("queue")
+                .exchangeName("exchange")
+                .routingKey("routingKey")
+                .build();
         connection.setConnectionAttempts(1);
+        connection = spy(connection);
+
+        doReturn(rabbitFactory).when(connection).createConnectionFactory();
     }
 
     @After
@@ -69,43 +77,51 @@ public class RabbitMqConnectionTest {
     }
 
     @Test
-    public void testDeclareChannelDefaults() throws Exception {
-        connection.open();
-        verify(rabbitChannel).queueDeclare("queue", true, false, false, null);
-    }
+    public void testDefaultConfig() throws Exception {
+        final boolean queueDurable= true;
+        final boolean queueExclusive = false;
+        final boolean queueAutoDelete = false;
+        final boolean exchangeDurable = false;
 
-    @Test
-    public void testDeclareChannelCustom() throws Exception {
-        final boolean autoAck = true;
-        final boolean durable= false;
-        final boolean exclusive = true;
-
-        connection.setQueueAutoDelete(autoAck);
-        connection.setQueueDurable(durable);
-        connection.setQueueExclusive(exclusive);
         connection.open();
-        verify(rabbitChannel).queueDeclare("queue", durable, exclusive, autoAck, null);
-    }
 
-    @Test
-    public void testDecalreExchangeDefaults() throws Exception {
-        connection.open();
-        verify(rabbitChannel).exchangeDeclare("exchange", "direct", false);
+        verify(rabbitChannel).queueDeclare("queue", queueDurable, queueExclusive, queueAutoDelete, null);
+        verify(rabbitChannel).exchangeDeclare("exchange", "direct", exchangeDurable);
         verify(rabbitChannel).queueBind("queue", "exchange", "routingKey");
     }
 
     @Test
-    public void testDecalreExchangeCustom() throws Exception {
-        connection.setExchangeType("topic");
-        connection.setExchangeDurable(true);
-        connection.open();
-        verify(rabbitChannel).exchangeDeclare("exchange", "topic", true);
-        verify(rabbitChannel).queueBind("queue", "exchange", "routingKey");
-    }
+    public void testCustomConfig() throws Exception {
+        final boolean queueDurable= false;
+        final boolean queueExclusive = true;
+        final boolean queueAutoDelete = true;
+        final boolean exchangeDurable = true;
 
+        connection = new RabbitMqConnection.Builder()
+                .queueName("custom-queue")
+                .queueAutoDelete(queueAutoDelete)
+                .queueDurable(queueDurable)
+                .queueExclusive(queueExclusive)
+                .exchangeName("custom-exchange")
+                .exchangeType("topic")
+                .exchangeDurable(exchangeDurable)
+                .routingKey("custom-routing-key")
+                .build();
+
+        connection = spy(connection);
+        doReturn(rabbitFactory).when(connection).createConnectionFactory();
+
+        connection.open();
+        verify(rabbitChannel).queueDeclare("custom-queue", queueDurable, queueExclusive, queueAutoDelete, null);
+        verify(rabbitChannel).exchangeDeclare("custom-exchange", "topic", exchangeDurable);
+        verify(rabbitChannel).queueBind("custom-queue", "custom-exchange", "custom-routing-key");
+    }
+    
     @Test
     public void testConnectDefaultExchange() throws Exception {
-        connection = new RabbitMqConnection("queue", null, null, rabbitFactory);
+        connection = spy(new RabbitMqConnection.Builder().queueName("queue").exchangeName(null).build());
+        doReturn(rabbitFactory).when(connection).createConnectionFactory();
+
         connection.open();
         verify(rabbitChannel).queueDeclare("queue", true, false, false, null);
         verify(rabbitChannel, never()).exchangeDeclare(anyString(), anyString(), anyBoolean());

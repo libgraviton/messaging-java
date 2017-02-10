@@ -59,7 +59,7 @@ class RabbitMqConsumer extends DefaultConsumer implements MessageAcknowledger {
     public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
         LOG.warn(String.format("Lost connection to message queue '%s'.", connection.getQueueName()));
         // "Automatic recovery only covers TCP connectivity issues and server-sent connection.close. It does not try to
-        // recover channels that were closed due to a channel com.github.libgraviton.messaging.exception or an application-level com.github.libgraviton.messaging.exception, by design."
+        // recover channels that were closed due to a channel exception or an application-level exception, by design."
         // - RabbitMQ Documentation
         // So we need to recover channel closings only.
         if(sig.getReference() instanceof Channel) {
