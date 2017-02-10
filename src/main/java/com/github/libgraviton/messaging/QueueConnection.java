@@ -17,7 +17,7 @@ abstract public class QueueConnection {
 
     protected String queueName;
 
-    private int connectionAttempts = 0;
+    private int connectionAttempts = -1;
 
     private double connectionAttemptSleep = 1;
 
@@ -33,7 +33,7 @@ abstract public class QueueConnection {
     }
 
     /**
-     * Sets the amount of connection attempts in order to connect to the queue. Set to 0, if it should try connecting
+     * Sets the amount of connection attempts in order to connect to the queue. Set to -1, if it should try connecting
      * endlessly.
      *
      * @param connectionAttempts The amount of connection attempts
@@ -63,9 +63,8 @@ abstract public class QueueConnection {
      */
     public void open() throws CannotConnectToQueue {
         int connectionAttempts = this.connectionAttempts;
-        boolean retryEndless = connectionAttempts == 0;
         LOG.info(String.format("Connecting to queue '%s'...", queueName));
-        while (connectionAttempts > 0 || retryEndless) {
+        while (connectionAttempts != 0 ) {
             try {
                 openConnection();
                 break;
@@ -86,8 +85,9 @@ abstract public class QueueConnection {
             } catch (InterruptedException e) {
                 LOG.warn(String.format("Thread sleep interrupted: %s", e.getMessage()));
             }
-            if (!retryEndless) {
-                connectionAttempts--; // avoid integer range overflow in endless mode
+            // If we should not try endlessly decrease connectionAttempts, else do nothing to avoid int range overflow
+            if (connectionAttempts > 0) {
+                connectionAttempts--;
             }
         }
         LOG.info(String.format("Connection to queue '%s' successfully established.", queueName));

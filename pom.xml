@@ -4,7 +4,7 @@
   <groupId>com.github.libgraviton</groupId>
   <artifactId>messaging</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <name>Messaging Integration Library</name>
   <url>https://github.com/libgraviton/messaging-java</url>
   <inceptionYear>2017</inceptionYear>
