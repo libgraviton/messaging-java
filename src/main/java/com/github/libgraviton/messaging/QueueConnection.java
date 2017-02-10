@@ -203,7 +203,7 @@ abstract public class QueueConnection {
      *
      * @param consumer The consumer to register. You most likely need to wrap this by a queue system specific consumer.
      *
-     * @throws CannotRegisterConsumer
+     * @throws CannotRegisterConsumer If the consumer cannot be registered.
      */
     abstract protected void registerConsumer(Consumer consumer) throws CannotRegisterConsumer;
 
