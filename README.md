@@ -63,7 +63,7 @@ try {
 }
 ```
 
-In this case, each message gets automatically acknowledged. If you want to handle message acknowledgment yourself, you need to register an `AcknowledginConsumer`:
+In this case, each message gets automatically acknowledged. If you want to handle message acknowledgment yourself, you need to register an `AcknowledgingConsumer`:
 ```java
 Consumer consumer = new AcknowledgingConsumer() {
 
