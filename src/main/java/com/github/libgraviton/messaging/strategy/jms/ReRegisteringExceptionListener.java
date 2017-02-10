@@ -1,6 +1,6 @@
 package com.github.libgraviton.messaging.strategy.jms;
 
-import com.github.libgraviton.messaging.Consumer;
+import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
 
 import javax.jms.JMSException;

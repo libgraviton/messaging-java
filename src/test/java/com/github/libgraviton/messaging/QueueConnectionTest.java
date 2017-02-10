@@ -1,5 +1,6 @@
 package com.github.libgraviton.messaging;
 
+import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotCloseConnection;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
@@ -8,8 +9,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.IOException;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;

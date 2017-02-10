@@ -1,5 +1,6 @@
 package com.github.libgraviton.messaging;
 
+import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotCloseConnection;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;

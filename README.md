@@ -30,7 +30,7 @@ Make sure that `version` points to the newest release on maven central (see badg
 
 ### Publish Messages
 
-To publish messages you need an instance of `QueueConnection` which represents the connection to the Message Queue.
+To publish messages you need an instance of `QueueConnection`, which represents the connection to the Message Queue.
 Once you have a `QueueConnection`, you can simply do the following to publish a message:
 ```java
 try {
@@ -42,7 +42,7 @@ try {
 ```
 
 ### Consume Messages
-To consume messages you need an instance of `QueueConnection` which represents the connection to the Message Queue.
+To consume messages you need an instance of `QueueConnection`, which represents the connection to the Message Queue.
 
 Once you have a `QueueConnection`, you can simply do the following to consume a message:
 ```java

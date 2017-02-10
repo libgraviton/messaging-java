@@ -1,6 +1,6 @@
 package com.github.libgraviton.messaging.exception;
 
-import com.github.libgraviton.messaging.Consumer;
+import com.github.libgraviton.messaging.consumer.Consumer;
 
 import java.io.IOException;
 

@@ -1,5 +1,7 @@
 package com.github.libgraviton.messaging;
 
+import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
+import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotAcknowledgeMessage;
 import com.github.libgraviton.messaging.exception.CannotConsumeMessage;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;

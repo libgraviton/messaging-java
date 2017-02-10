@@ -1,7 +1,7 @@
 package com.github.libgraviton.messaging.strategy.rabbitmq;
 
-import com.github.libgraviton.messaging.AcknowledgingConsumer;
-import com.github.libgraviton.messaging.Consumer;
+import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
+import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
