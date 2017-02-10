@@ -3,3 +3,25 @@
 
 
 Message Queue Integration Library for Java
+
+## Supported Message Brokers
+
+* RabbitMQ
+* JMS based Message Brokers
+
+
+## Using the library
+
+In order to use the library, include the following in the `pom.xml` of your project:
+
+```xml
+<dependencies>
+	<dependency>
+		<groupId>com.github.libgraviton</groupId>
+		<artifactId>messaging</artifactId>
+		<version>LATEST</version>
+	</dependency>
+</dependencies>
+```
+
+Make sure that `version` points to the newest release on maven central (see badge above).
