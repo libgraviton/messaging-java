@@ -15,22 +15,11 @@ abstract public class QueueConnection {
 
     protected static final Logger LOG = LoggerFactory.getLogger(QueueConnection.class);
 
-    protected String queueName;
-
     private int connectionAttempts = -1;
 
     private double connectionAttemptSleep = 1;
 
     private Consumer consumer;
-
-    /**
-     * Creates a connection to a queue.
-     *
-     * @param queueName The name of the queue
-     */
-    public QueueConnection(String queueName) {
-        this.queueName = queueName;
-    }
 
     /**
      * Sets the amount of connection attempts in order to connect to the queue. Set to -1, if it should try connecting
@@ -63,13 +52,13 @@ abstract public class QueueConnection {
      */
     public void open() throws CannotConnectToQueue {
         int connectionAttempts = this.connectionAttempts;
-        LOG.info(String.format("Connecting to queue '%s'...", queueName));
+        LOG.info(String.format("Connecting to queue '%s'...", getConnectionName()));
         while (connectionAttempts != 0 ) {
             try {
                 openConnection();
                 break;
             } catch (CannotConnectToQueue e) {
-                LOG.error(String.format("Unable to open to queue '%s': '%s'", queueName, e.getMessage()));
+                LOG.error(String.format("Unable to open to queue '%s': '%s'", getConnectionName(), e.getMessage()));
                 // Last try failed
                 if (1 == connectionAttempts) {
                     throw e;
@@ -77,7 +66,7 @@ abstract public class QueueConnection {
             }
             LOG.warn(String.format(
                     "Connection to queue '%s' failed. Retrying in '%s' seconds.",
-                    queueName,
+                    getConnectionName(),
                     connectionAttemptSleep
             ));
             try {
@@ -90,20 +79,24 @@ abstract public class QueueConnection {
                 connectionAttempts--;
             }
         }
-        LOG.info(String.format("Connection to queue '%s' successfully established.", queueName));
+        LOG.info(String.format("Connection to queue '%s' successfully established.", getConnectionName()));
     }
 
     /**
      * Closes the connection
      */
     public void close() {
-        LOG.info(String.format("Closing connection to queue '%s'...", queueName));
+        LOG.info(String.format("Closing connection to queue '%s'...", getConnectionName()));
         consumer = null;
         try {
             closeConnection();
-            LOG.info(String.format("Connection to queue '%s' successfully closed.", queueName));
+            LOG.info(String.format("Connection to queue '%s' successfully closed.", getConnectionName()));
         } catch (CannotCloseConnection e) {
-            LOG.warn(String.format("Cannot successfully close queue '%s': '%s'", queueName, e.getCause().getMessage()));
+            LOG.warn(String.format(
+                    "Cannot successfully close queue '%s': '%s'",
+                    getConnectionName(),
+                    e.getCause().getMessage()
+            ));
         }
     }
 
@@ -117,7 +110,7 @@ abstract public class QueueConnection {
      * @throws CannotRegisterConsumer If the consumer cannot be registered for some reason.
      */
     public void consume(Consumer consumer) throws CannotRegisterConsumer {
-        LOG.info(String.format("Registering consumer on queue '%s'...", queueName));
+        LOG.info(String.format("Registering consumer on queue '%s'...", getConnectionName()));
         // This allows easier consumer recovery on queue exceptions
         if (null != this.consumer) {
             throw new CannotRegisterConsumer(
@@ -133,7 +126,10 @@ abstract public class QueueConnection {
         }
         registerConsumer(consumer);
         this.consumer = consumer;
-        LOG.info(String.format("Consumer successfully registered on queue '%s'. Waiting for messages...", queueName));
+        LOG.info(String.format(
+                "Consumer successfully registered on queue '%s'. Waiting for messages...",
+                getConnectionName()
+        ));
     }
 
     /**
@@ -145,7 +141,7 @@ abstract public class QueueConnection {
      * @throws CannotPublishMessage If the message cannot be published for some reason.
      */
     public void publish(String message) throws CannotPublishMessage {
-        LOG.info(String.format("Publishing message on queue '%s': '%s", queueName, message));
+        LOG.info(String.format("Publishing message on queue '%s': '%s", getConnectionName(), message));
         boolean wasClosed = false;
         try {
             wasClosed = openIfClosed();
@@ -157,7 +153,7 @@ abstract public class QueueConnection {
                 close();
             }
         }
-        LOG.info(String.format("Message successfully published on queue '%s'.", queueName));
+        LOG.info(String.format("Message successfully published on queue '%s'.", getConnectionName()));
     }
 
     /**
@@ -170,25 +166,26 @@ abstract public class QueueConnection {
     public boolean openIfClosed() throws CannotConnectToQueue {
         if (!isOpen()) {
             open();
-            LOG.info(String.format("Connection to queue '%s' has already been opened. Skipping...", queueName));
+            LOG.info(String.format(
+                    "Connection to queue '%s' has already been opened. Skipping...",
+                    getConnectionName()
+            ));
             return true;
         }
         return false;
     }
 
     /**
-     * Gets the queue's name
+     * Gets the connection's name, which is used in log messages.
      *
-     * @return The queue name
+     * @return The connection name
      */
-    public String getQueueName() {
-        return queueName;
-    }
+    abstract public String getConnectionName();
 
     /**
-     * Checks whether the queue is open or not.
+     * Checks whether the connection is open or not.
      *
-     * @return true if the queue has been opened, false if not.
+     * @return true if the connection has been opened, false if not.
      */
     abstract public boolean isOpen();
 

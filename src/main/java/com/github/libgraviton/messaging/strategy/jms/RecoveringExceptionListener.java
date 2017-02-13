@@ -21,20 +21,20 @@ class RecoveringExceptionListener implements ExceptionListener {
     public void onException(JMSException e) {
         LOG.warn(String.format(
                 "Connection to queue '%s' encountered an com.github.libgraviton.messaging.exception with code '%s' and message '%s'.",
-                connection.getQueueName(),
+                connection.getConnectionName(),
                 e.getErrorCode(),
                 e.getMessage()
         ));
-        LOG.info(String.format("Recovering connection to queue '%s'...", connection.getQueueName()));
+        LOG.info(String.format("Recovering connection to queue '%s'...", connection.getConnectionName()));
 
         try {
             connection.close();
             connection.open();
-            LOG.info(String.format("Connection to queue '%s' successfully re-established.", connection.getQueueName()));
+            LOG.info(String.format("Connection to queue '%s' successfully re-established.", connection.getConnectionName()));
         } catch (CannotConnectToQueue recoverException) {
             LOG.error(String.format(
                     "Connection recovery for queue '%s' failed: %s",
-                    connection.getQueueName(),
+                    connection.getConnectionName(),
                     recoverException.getMessage())
             );
         }

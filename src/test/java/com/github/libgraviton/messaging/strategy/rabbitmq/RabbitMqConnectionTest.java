@@ -72,8 +72,8 @@ public class RabbitMqConnectionTest {
     }
 
     @Test
-    public void testQueuName() {
-        assertEquals("queue", connection.getQueueName());
+    public void testConneectionName() {
+        assertEquals("exchange - queue", connection.getConnectionName());
     }
 
     @Test

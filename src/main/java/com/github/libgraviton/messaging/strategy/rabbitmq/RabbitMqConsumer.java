@@ -49,7 +49,7 @@ class RabbitMqConsumer extends DefaultConsumer implements MessageAcknowledger {
         LOG.info(String.format(
                 "Message '%d' received on queue '%s': '%s'",
                 deliveryTag,
-                connection.getQueueName(),
+                connection.getConnectionName(),
                 message
         ));
         consumer.consume(String.valueOf(deliveryTag), message);
@@ -57,18 +57,18 @@ class RabbitMqConsumer extends DefaultConsumer implements MessageAcknowledger {
 
     @Override
     public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
-        LOG.warn(String.format("Lost connection to message queue '%s'.", connection.getQueueName()));
+        LOG.warn(String.format("Lost connection to message queue '%s'.", connection.getConnectionName()));
         // "Automatic recovery only covers TCP connectivity issues and server-sent connection.close. It does not try to
         // recover channels that were closed due to a channel exception or an application-level exception, by design."
         // - RabbitMQ Documentation
         // So we need to recover channel closings only.
         if(sig.getReference() instanceof Channel) {
-            LOG.info("Recovering connection to queue '%s'...", connection.getQueueName());
+            LOG.info("Recovering connection to queue '%s'...", connection.getConnectionName());
             connection.close();
             try {
                 connection.consume(consumer);
             } catch (CannotRegisterConsumer e) {
-                LOG.error("Connection recovery for queue '%s' failed.", connection.getQueueName());
+                LOG.error("Connection recovery for queue '%s' failed.", connection.getConnectionName());
             }
         }
     }

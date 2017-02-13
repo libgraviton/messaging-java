@@ -61,7 +61,7 @@ public class JmsConnectionTest {
 
     @Test
     public void testQueuName() {
-        assertEquals("queue", connection.getQueueName());
+        assertEquals("queue", connection.getConnectionName());
     }
 
     @Test

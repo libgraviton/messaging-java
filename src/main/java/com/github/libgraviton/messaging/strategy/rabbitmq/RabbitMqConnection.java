@@ -29,8 +29,16 @@ public class RabbitMqConnection extends QueueConnection {
     private Config config;
 
     private RabbitMqConnection(Config config) {
-        super(config.queueName);
         this.config = config;
+    }
+
+    @Override
+    public String getConnectionName() {
+        return String.format(
+                "%s - %s",
+                null == config.exchangeName ? "default-exchange" : config.exchangeName,
+                null == config.queueName ? "temporary-queue" : config.queueName
+        );
     }
 
     /**

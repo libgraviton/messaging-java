@@ -26,6 +26,8 @@ public class JmsConnection extends QueueConnection {
 
     protected Queue queue;
 
+    protected String queueName;
+
     /**
      * Creates a JMS queue connection.
      *
@@ -33,8 +35,13 @@ public class JmsConnection extends QueueConnection {
      * @param connectionFactory The JMS Connection factory
      */
     public JmsConnection(String queueName, ConnectionFactory connectionFactory) {
-        super(queueName);
+        this.queueName = queueName;
         this.connectionFactory = connectionFactory;
+    }
+
+    @Override
+    public String getConnectionName() {
+        return queueName;
     }
 
     /**
