@@ -1,5 +1,6 @@
 package com.github.libgraviton.messaging.strategy.rabbitmq;
 
+import com.github.libgraviton.messaging.config.ContextProperties;
 import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
 import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.QueueConnection;
@@ -43,8 +44,10 @@ public class RabbitMqConnection extends QueueConnection {
     }
 
     /**
-     * Opens the connection. If no config.getExchangeName() is defined, it will bind to the default config.getExchangeName() of RabbitMQ. But note that
-     * you need to define an config.getExchangeName() in order to publish messages.
+     * Opens the connection. If no config.exchangeName is defined, it will bind to the default config.exchangeName
+     * of RabbitMQ. But note that you need to define an config.exchangeName in order to publish messages.
+     *
+     * @see Builder#exchangeName(String)
      *
      * @throws CannotConnectToQueue If the connection cannot be established
      */
@@ -53,13 +56,16 @@ public class RabbitMqConnection extends QueueConnection {
         try {
             connection = createConnectionFactory().newConnection();
             channel = connection.createChannel();
-            channel.queueDeclare(
-                    config.queueName,
-                    config.queueDurable,
-                    config.queueExclusive,
-                    config.queueAutoDelete,
-                    config.QUEUE_ARGS
-            );
+            // If defined, use specific queue and declare it, otherwise use random / temporary queue
+            if (null != config.queueName) {
+                channel.queueDeclare(
+                        config.queueName,
+                        config.queueDurable,
+                        config.queueExclusive,
+                        config.queueAutoDelete,
+                        config.QUEUE_ARGS
+                );
+            }
             // If defined, use specific exchange and bind queue to it, otherwise use default exchange
             if (null != config.exchangeName) {
                 channel.exchangeDeclare(config.exchangeName, config.exchangeType, config.exchangeDurable);
@@ -158,7 +164,7 @@ public class RabbitMqConnection extends QueueConnection {
 
         private final ExceptionHandler EXCEPTION_HANDLER = new QueueExceptionLogger();
 
-        private String queueName = "queue";
+        private String queueName = null;
 
         private String host = "localhost";
 
@@ -180,19 +186,36 @@ public class RabbitMqConnection extends QueueConnection {
 
         private String exchangeType = "direct";
 
-        private String routingKey;
+        private String routingKey = null;
 
     }
 
+    /**
+     * Builder class for creating RabbitMQ connections.
+     */
     public static class Builder {
 
         private Config config;
 
+        /**
+         * Creates a new Builder by using all default values.
+         */
         public Builder() {
             config = new Config();
         }
 
-        public Builder(Properties properties) {
+
+        /**
+         * Creates a new Builder by using the property values in a given context of a given {@link Properties}.
+         *
+         * @param properties The properties instance
+         * @param prefix The context (e.g. 'context' will lead to all matching properties under context.* being used)
+         */
+        public Builder(Properties properties, String prefix) {
+            this(new ContextProperties(properties, prefix));
+        }
+
+        Builder(Properties properties) {
             this();
             host(properties.getProperty("host", config.host))
                     .port(Integer.parseInt(properties.getProperty("port", Integer.toString(config.port))))
@@ -205,68 +228,168 @@ public class RabbitMqConnection extends QueueConnection {
                     .exchangeName(properties.getProperty("exchange.name", config.exchangeName))
                     .exchangeType(properties.getProperty("exchange.type", config.exchangeType))
                     .exchangeDurable(booleanProperty(properties, "exchange.durable", config.exchangeDurable))
-                    .routingKey(properties.getProperty("routingkey"));
+                    .routingKey(properties.getProperty("routingkey", config.routingKey));
         }
 
+        /**
+         * Builds the RabbitMQ Connection.
+         *
+         * @return The RabbitMQ Connection
+         */
         public RabbitMqConnection build() {
             return new RabbitMqConnection(config);
         }
 
+        /**
+         * Sets the queue name. Default is a random queue.
+         *
+         * @param queueName The queue name
+         *
+         * @return self
+         */
         public Builder queueName(String queueName) {
             config.queueName = queueName;
             return this;
         }
 
+        /**
+         * Defines the durability of the queue. Default is true. Only applies if a queue is specified.
+         *
+         * @see #queueName(String)
+         *
+         * @param queueDurable The queue's durability
+         *
+         * @return self
+         */
         public Builder queueDurable(boolean queueDurable) {
             config.queueDurable = queueDurable;
             return this;
         }
 
+        /**
+         * Defines the exclusivity of the queue. Default is false. Only applies if a queue is specified.
+         *
+         * @see #queueName(String)
+         *
+         * @param queueExclusive The queue's exclusivity
+         *
+         * @return self
+         */
         public Builder queueExclusive(boolean queueExclusive) {
             config.queueExclusive = queueExclusive;
             return this;
         }
 
+        /**
+         * Defines whether the queue should get automatically deleted. Default is false. Only applies if a queue is
+         * specified.
+         *
+         * @see #queueName(String)
+         *
+         * @param queueAutoDelete Whether the queue should get automatically deleted
+         *
+         * @return self
+         */
         public Builder queueAutoDelete(boolean queueAutoDelete) {
             config.queueAutoDelete = queueAutoDelete;
             return this;
         }
 
+        /**
+         * Sets the exchange name. Default is the RabbitMQ default exchange.
+         *
+         * @param exchangeName The exchange name
+         *
+         * @return self
+         */
         public Builder exchangeName(String exchangeName) {
             config.exchangeName = exchangeName;
             return this;
         }
 
+        /**
+         * Defines the type of the exchange. Default is 'direct'. Only applies if an exchange is specified.
+         *
+         * @see #exchangeName(String)
+         *
+         * @param exchangeType The exchange's type
+         *
+         * @return self
+         */
         public Builder exchangeType(String exchangeType) {
             config.exchangeType = exchangeType;
             return this;
         }
 
+        /**
+         * Defines the durability of the exchange. Default is true. Only applies if an exchange is specified.
+         *
+         * @see #exchangeName(String)
+         *
+         * @param exchangeDurable The exchange's durability
+         *
+         * @return self
+         */
         public Builder exchangeDurable(boolean exchangeDurable) {
             config.exchangeDurable = exchangeDurable;
             return this;
         }
 
+        /**
+         * Sets the routing key.
+         *
+         * @param routingKey The routing key
+         *
+         * @return self
+         */
         public Builder routingKey(String routingKey) {
             config.routingKey = routingKey;
             return this;
         }
 
+        /**
+         * Sets the host where RabbitMQ is accessible.
+         *
+         * @param host The host
+         *
+         * @return self
+         */
         public Builder host(String host) {
             config.host = host;
             return this;
         }
 
+        /**
+         * Sets the port where RabbitMQ is accessible.
+         *
+         * @param port The port
+         *
+         * @return self
+         */
         public Builder port(int port) {
             config.port = port;
             return this;
         }
 
+        /**
+         * Sets the user which will be used to establish the connection.
+         *
+         * @param user The user
+         *
+         * @return self
+         */
         public Builder user(String user) {
             config.user = user;
             return this;
         }
 
+        /**
+         * Sets the password which will be used to establish the connection.
+         *
+         * @param password The password
+         *
+         * @return self
+         */
         public Builder password(String password) {
             config.password = password;
             return  this;
