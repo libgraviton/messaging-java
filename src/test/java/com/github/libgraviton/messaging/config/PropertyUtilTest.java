@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 
 public class PropertyUtilTest {
 
-    Properties properties;
+    private Properties properties;
 
     @Before
     public void setUp() {
