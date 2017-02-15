@@ -6,9 +6,14 @@ public class CannotPublishMessage extends IOException {
 
     private String mqMessage;
 
-    public CannotPublishMessage(String mqMessage, Exception cause) {
-        super(String.format("Cannot publish message: '%s'", mqMessage), cause);
+    public CannotPublishMessage(String mqMessage, String reason) {
+        super(String.format("Cannot publish message '%s'. Reason: '%s'", mqMessage, reason));
         this.mqMessage = mqMessage;
+    }
+
+    public CannotPublishMessage(String mqMessage, Throwable cause) {
+        this(mqMessage, "An exception occurred.");
+        initCause(cause);
     }
 
     public String getMqMessage() {
