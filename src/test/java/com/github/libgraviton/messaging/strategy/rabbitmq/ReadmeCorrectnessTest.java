@@ -22,20 +22,23 @@ public class ReadmeCorrectnessTest {
     @Before
     public void setUp() {
         properties = mock(Properties.class);
+        builder = spy(new RabbitMqConnection.Builder());
         doCallRealMethod().when(properties).getProperty(anyString(), anyString());
     }
     
     @Test
     public void testPropertiesBuilderMethodListComplete() {
-        builder = spy(new RabbitMqConnection.Builder(properties, "context"));
+        builder.applyProperties(properties, "context");
         builder.build();
         
-        verify(properties, times(12)).getProperty(matches("context\\..*$")); // verify list is complete
+        verify(properties, times(14)).getProperty(matches("context\\..*$")); // verify list is complete
         verify(properties).getProperty("context.host");
         verify(properties).getProperty("context.port");
         verify(properties).getProperty("context.user");
         verify(properties).getProperty("context.password");
         verify(properties).getProperty("context.queue.name");
+        verify(properties).getProperty("context.connection.attempts");
+        verify(properties).getProperty("context.connection.attempts.wait");
         verify(properties).getProperty("context.queue.durable");
         verify(properties).getProperty("context.queue.exclusive");
         verify(properties).getProperty("context.queue.autodelete");
@@ -47,13 +50,16 @@ public class ReadmeCorrectnessTest {
 
     @Test
     public void testDefaults() {
-        RabbitMqConnection.Builder builder = spy(new RabbitMqConnection.Builder(properties));
+        builder.applyProperties(properties);
         builder.build();
+
         verify(properties).getProperty("host", "localhost");
         verify(properties).getProperty("port", "5672");
         verify(properties).getProperty("user", "guest");
         verify(properties).getProperty("password", "guest");
         verify(properties).getProperty("queue.name", null);
+        verify(properties).getProperty("connection.attempts", "-1");
+        verify(properties).getProperty("connection.attempts.wait", "1.0");
         verify(properties).getProperty("queue.durable", "true");
         verify(properties).getProperty("queue.exclusive", "false");
         verify(properties).getProperty("queue.autodelete", "false");

@@ -15,26 +15,28 @@ Moreover, you can even pass a property file and a property context:
 ```java
 Properties properties = new Properties();
 properties.setProperty("context.queue.name", "your-queue");
-QueueConnection connection = new RabbitMqConnection.Builder(properties, "context");
+QueueConnection connection = new RabbitMqConnection.Builder().applyProperties(properties, "context").build();
 
 ```
 This will use all `config.*` properties to configure the connection.
 
 The following properties / builder methods are currently supported:
 
-| property         | invoked builder method         | default value |
-|------------------|--------------------------------|---------------|
-| host             | host(propertyValue)            | `localhost`   |
-| port             | port(propertyValue)            | `5672`        |
-| user             | user(propertyValue)            | `guest`       |
-| password         | password(propertyValue)        | `guest`       |
-| queue.name       | queueName(propertyValue)       | `null`        |
-| queue.durable    | queueDurable(propertyValue)    | `true`        |
-| queue.exclusive  | queueExclusive(propertyValue)  | `false`       |
-| queue.autodelete | queueAutoDelete(propertyValue) | `false`       |
-| exchange.name    | exchangeName(propertyValue)    | `null`        |
-| exchange.type    | exchangeType(propertyValue)    | `direct`      |
-| exchange.durable | exchangeDurable(propertyValue) | `false`       |
-| routingkey       | routingKey(propertyValue)      | `routingkey`  |
+| invoked builder method   | equivalent property      | default value |
+|--------------------------|--------------------------|---------------|
+| host()                   | host                     | `localhost`   |
+| port()                   | port                     | `5672`        |
+| user()                   | user                     | `guest`       |
+| password()               | password                 | `guest`       |
+| queueName()              | queueName                | `null`        |
+| connectionAttempts()     | connection.attempts      | `-1`          |
+| connectionAttemptsWait() | connection.attempts.wait | `1`           |
+| queueDurable()           | queueDurable             | `true`        |
+| queueExclusive()         | queueExclusive           | `false`       |
+| queueAutodelete()        | queueAutoDelete          | `false`       |
+| exchangeName()           | exchangeName             | `null`        |
+| exchangeType()           | exchangeType             | `direct`      |
+| exchangeDurable()        | exchangeDurable          | `false`       |
+| routingkey()             | routingKey               | `routingkey`  |
 
 See the [API doc](https://www.javadoc.io/doc/com.github.libgraviton/messaging/) for further details on the builder methods.

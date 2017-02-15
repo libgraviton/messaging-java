@@ -47,14 +47,13 @@ public class RabbitMqConnectionTest {
         doReturn(rabbitConnection).when(rabbitFactory).newConnection();
 
         connection = new RabbitMqConnection.Builder()
-                .queueName("queue")
                 .exchangeName("exchange")
                 .routingKey("routingKey")
+                .queueName("queue")
+                .connectionAttempts(1)
+                .connectionFactory(rabbitFactory)
                 .build();
-        connection.setConnectionAttempts(1);
         connection = spy(connection);
-
-        doReturn(rabbitFactory).when(connection).createConnectionFactory();
     }
 
     @After
@@ -106,10 +105,11 @@ public class RabbitMqConnectionTest {
                 .exchangeType("topic")
                 .exchangeDurable(exchangeDurable)
                 .routingKey("custom-routing-key")
+                .connectionAttempts(1)
+                .connectionFactory(rabbitFactory)
                 .build();
 
         connection = spy(connection);
-        doReturn(rabbitFactory).when(connection).createConnectionFactory();
 
         connection.open();
         verify(rabbitChannel).queueDeclare("custom-queue", queueDurable, queueExclusive, queueAutoDelete, null);
@@ -119,8 +119,13 @@ public class RabbitMqConnectionTest {
     
     @Test
     public void testConnectDefaultExchange() throws Exception {
-        connection = spy(new RabbitMqConnection.Builder().queueName("queue").exchangeName(null).build());
-        doReturn(rabbitFactory).when(connection).createConnectionFactory();
+        connection = new RabbitMqConnection.Builder()
+                .queueName("queue")
+                .exchangeName(null)
+                .connectionFactory(rabbitFactory)
+                .connectionAttempts(1)
+                .build();
+        connection = spy(connection);
 
         connection.open();
         verify(rabbitChannel).queueDeclare("queue", true, false, false, null);
