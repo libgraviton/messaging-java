@@ -18,7 +18,7 @@ properties.setProperty("context.queue.name", "your-queue");
 QueueConnection connection = new JmsConnection.Builder().applyProperties(properties, "context").build();
 
 ```
-This will use all `config.*` properties to configure the connection.
+This will use all `context.*` properties to configure the connection.
 
 The following builder methods / properties are currently supported:
 
@@ -33,6 +33,6 @@ The following builder methods / properties are currently supported:
 | connectionAttemptsWait() | connection.attempts.wait | `1`           |
 | connectionFactory()      |                          | `null`        |
 
-`connectionFactory()` may cause the builder to ignore / override other values like `host`.
+The use of `connectionFactory()` may cause the builder to ignore / override other values like `host`.
 
 See the [API doc](https://www.javadoc.io/doc/com.github.libgraviton/messaging/) for further details on the builder methods.

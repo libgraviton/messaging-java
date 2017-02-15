@@ -18,7 +18,7 @@ properties.setProperty("context.queue.name", "your-queue");
 QueueConnection connection = new RabbitMqConnection.Builder().applyProperties(properties, "context").build();
 
 ```
-This will use all `config.*` properties to configure the connection.
+This will use all `context.*` properties to configure the connection.
 
 The following properties / builder methods are currently supported:
 
