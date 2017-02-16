@@ -37,7 +37,7 @@ The following properties / builder methods are currently supported:
 | exchangeName()           | exchange.name            | `null`        |
 | exchangeType()           | exchange.type            | `direct`      |
 | exchangeDurable()        | exchange.durable         | `false`       |
-| routingkey()             | routingkey               | `routingkey`  |
+| routingkey()             | routingkey               | `null`  |
 | virtualHost()            | virtualhost              | `/`  |
 
 See the [API doc](https://www.javadoc.io/doc/com.github.libgraviton/messaging/) for further details on the builder methods.
