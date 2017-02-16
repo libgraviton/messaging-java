@@ -5,10 +5,7 @@ import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.client.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,17 +33,28 @@ public class RabbitMqConnectionTest {
 
     @Before
     public void setUp() throws Exception{
-        rabbitChannel = mock(Channel.class);
-
         rabbitConnection = mock(Connection.class);
+
+        AMQP.Queue.DeclareOk declareOk = mock(AMQP.Queue.DeclareOk.class);
+        doReturn("generated-queue-name").when(declareOk).getQueue();
+
+        rabbitChannel = mock(Channel.class);
         doReturn(rabbitChannel).when(rabbitConnection).createChannel();
         doReturn(true).when(rabbitChannel).isOpen();
+        doReturn(declareOk).when(rabbitChannel).queueDeclare();
         doReturn(true).when(rabbitConnection).isOpen();
 
         rabbitFactory = mock(ConnectionFactory.class);
         doReturn(rabbitConnection).when(rabbitFactory).newConnection();
-        connection = new RabbitMqConnection("queue", "exchange", "routingKey", rabbitFactory);
-        connection.setConnectionAttempts(1);
+
+        connection = new RabbitMqConnection.Builder()
+                .exchangeName("exchange")
+                .routingKey("routingKey")
+                .queueName("queue")
+                .connectionAttempts(1)
+                .connectionFactory(rabbitFactory)
+                .build();
+        connection = spy(connection);
     }
 
     @After
@@ -64,48 +72,72 @@ public class RabbitMqConnectionTest {
     }
 
     @Test
-    public void testQueuName() {
-        assertEquals("queue", connection.getQueueName());
+    public void testConnectionName() {
+        assertEquals("exchange - queue", connection.getConnectionName());
     }
 
     @Test
-    public void testDeclareChannelDefaults() throws Exception {
-        connection.open();
-        verify(rabbitChannel).queueDeclare("queue", true, false, false, null);
-    }
+    public void testConnect() throws Exception {
+        final boolean queueDurable= true;
+        final boolean queueExclusive = false;
+        final boolean queueAutoDelete = false;
+        final boolean exchangeDurable = false;
 
-    @Test
-    public void testDeclareChannelCustom() throws Exception {
-        final boolean autoAck = true;
-        final boolean durable= false;
-        final boolean exclusive = true;
-
-        connection.setQueueAutoDelete(autoAck);
-        connection.setQueueDurable(durable);
-        connection.setQueueExclusive(exclusive);
         connection.open();
-        verify(rabbitChannel).queueDeclare("queue", durable, exclusive, autoAck, null);
-    }
 
-    @Test
-    public void testDecalreExchangeDefaults() throws Exception {
-        connection.open();
-        verify(rabbitChannel).exchangeDeclare("exchange", "direct", false);
+        verify(rabbitChannel).queueDeclare("queue", queueDurable, queueExclusive, queueAutoDelete, null);
+        verify(rabbitChannel).exchangeDeclare("exchange", "direct", exchangeDurable);
         verify(rabbitChannel).queueBind("queue", "exchange", "routingKey");
     }
 
     @Test
-    public void testDecalreExchangeCustom() throws Exception {
-        connection.setExchangeType("topic");
-        connection.setExchangeDurable(true);
+    public void testConnectGeneratedQueue() throws Exception {
+        connection = new RabbitMqConnection.Builder().queueName(null).connectionFactory(rabbitFactory).build();
+
         connection.open();
-        verify(rabbitChannel).exchangeDeclare("exchange", "topic", true);
-        verify(rabbitChannel).queueBind("queue", "exchange", "routingKey");
+
+        verify(rabbitChannel).queueDeclare();
     }
 
+
+    @Test
+    public void testCustomConfig() throws Exception {
+        final boolean queueDurable= false;
+        final boolean queueExclusive = true;
+        final boolean queueAutoDelete = true;
+        final boolean exchangeDurable = true;
+
+        connection = new RabbitMqConnection.Builder()
+                .queueName("custom-queue")
+                .queueAutoDelete(queueAutoDelete)
+                .queueDurable(queueDurable)
+                .queueExclusive(queueExclusive)
+                .exchangeName("custom-exchange")
+                .exchangeType("topic")
+                .exchangeDurable(exchangeDurable)
+                .routingKey("custom-routing-key")
+                .connectionAttempts(1)
+                .connectionFactory(rabbitFactory)
+                .build();
+
+        connection = spy(connection);
+
+        connection.open();
+        verify(rabbitChannel).queueDeclare("custom-queue", queueDurable, queueExclusive, queueAutoDelete, null);
+        verify(rabbitChannel).exchangeDeclare("custom-exchange", "topic", exchangeDurable);
+        verify(rabbitChannel).queueBind("custom-queue", "custom-exchange", "custom-routing-key");
+    }
+    
     @Test
     public void testConnectDefaultExchange() throws Exception {
-        connection = new RabbitMqConnection("queue", null, null, rabbitFactory);
+        connection = new RabbitMqConnection.Builder()
+                .queueName("queue")
+                .exchangeName(null)
+                .connectionFactory(rabbitFactory)
+                .connectionAttempts(1)
+                .build();
+        connection = spy(connection);
+
         connection.open();
         verify(rabbitChannel).queueDeclare("queue", true, false, false, null);
         verify(rabbitChannel, never()).exchangeDeclare(anyString(), anyString(), anyBoolean());

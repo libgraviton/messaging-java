@@ -41,8 +41,11 @@ public class JmsConnectionTest {
 
         jmsFactory = mock(ConnectionFactory.class);
         doReturn(jmsConnection).when(jmsFactory).createConnection();
-        connection = new JmsConnection("queue", jmsFactory);
-        connection.setConnectionAttempts(1);
+        connection = (JmsConnection) new JmsConnection.Builder<>()
+                .connectionAttempts(1)
+                .connectionFactory(jmsFactory)
+                .queueName("queue")
+                .build();
     }
 
     @After
@@ -61,7 +64,7 @@ public class JmsConnectionTest {
 
     @Test
     public void testQueuName() {
-        assertEquals("queue", connection.getQueueName());
+        assertEquals("queue", connection.getConnectionName());
     }
 
     @Test
@@ -92,7 +95,7 @@ public class JmsConnectionTest {
         verify(jmsConsumer).setMessageListener(any(JmsConsumer.class));
         verify(jmsConnection).start();
 
-        // Normal recovering com.github.libgraviton.messaging.exception listener first, re-registering com.github.libgraviton.messaging.exception listener second
+        // Normal recovering exception listener first, re-registering exception listener second
         verify(jmsConnection, times(2)).setExceptionListener(any(ExceptionListener.class));
     }
 
@@ -103,7 +106,13 @@ public class JmsConnectionTest {
 
         Consumer consumer = mock(Consumer.class);
 
-        connection.setMessageSelector("selector");
+        connection = (JmsConnection) new JmsConnection.Builder<>()
+                .connectionAttempts(1)
+                .connectionFactory(jmsFactory)
+                .messageSelector("selector")
+                .queueName("queue")
+                .build();
+
         connection.consume(consumer);
 
         verify(jmsSession, never()).createConsumer(jmsQueue);
