@@ -200,6 +200,8 @@ public class RabbitMqConnection extends QueueConnection {
 
         private String routingKey = null;
 
+        private String virtualHost = "/";
+
         private ConnectionFactory connectionFactory;
 
         /**
@@ -304,6 +306,18 @@ public class RabbitMqConnection extends QueueConnection {
             return this;
         }
 
+        /**
+         * Sets the RabbitMQ virtual host
+         *
+         * @param virtualHost The virtual host
+         *
+         * @return self
+         */
+        public Builder virtualHost(String virtualHost) {
+            this.virtualHost = virtualHost;
+            return this;
+        }
+
         Builder connectionFactory(ConnectionFactory connectionFactory) {
             this.connectionFactory = connectionFactory;
             return this;
@@ -318,7 +332,8 @@ public class RabbitMqConnection extends QueueConnection {
                     .exchangeName(properties.getProperty("exchange.name", exchangeName))
                     .exchangeType(properties.getProperty("exchange.type", exchangeType))
                     .exchangeDurable(PropertyUtil.getBoolean(properties, "exchange.durable", exchangeDurable))
-                    .routingKey(properties.getProperty("routingkey", routingKey));
+                    .routingKey(properties.getProperty("routingkey", routingKey))
+                    .virtualHost(properties.getProperty("virtualhost", virtualHost));
         }
 
         @Override
@@ -329,6 +344,7 @@ public class RabbitMqConnection extends QueueConnection {
                 connectionFactory.setPort(port);
                 connectionFactory.setUsername(user);
                 connectionFactory.setPassword(password);
+                connectionFactory.setVirtualHost(virtualHost);
                 connectionFactory.setExceptionHandler(EXCEPTION_HANDLER);
                 connectionFactory.setAutomaticRecoveryEnabled(AUTO_RECOVERY);
             }

@@ -28,15 +28,16 @@ The following properties / builder methods are currently supported:
 | port()                   | port                     | `5672`        |
 | user()                   | user                     | `guest`       |
 | password()               | password                 | `guest`       |
-| queueName()              | queueName                | `null`        |
+| queueName()              | queue.name               | `null`        |
 | connectionAttempts()     | connection.attempts      | `-1`          |
 | connectionAttemptsWait() | connection.attempts.wait | `1`           |
-| queueDurable()           | queueDurable             | `true`        |
-| queueExclusive()         | queueExclusive           | `false`       |
-| queueAutodelete()        | queueAutoDelete          | `false`       |
-| exchangeName()           | exchangeName             | `null`        |
-| exchangeType()           | exchangeType             | `direct`      |
-| exchangeDurable()        | exchangeDurable          | `false`       |
-| routingkey()             | routingKey               | `routingkey`  |
+| queueDurable()           | queue.durable            | `true`        |
+| queueExclusive()         | queue.exclusive          | `false`       |
+| queueAutodelete()        | queue.autodelete         | `false`       |
+| exchangeName()           | exchange.name            | `null`        |
+| exchangeType()           | exchange.type            | `direct`      |
+| exchangeDurable()        | exchange.durable         | `false`       |
+| routingkey()             | routingkey               | `routingkey`  |
+| virtualHost()            | virtualhost              | `/`  |
 
 See the [API doc](https://www.javadoc.io/doc/com.github.libgraviton/messaging/) for further details on the builder methods.

@@ -28,7 +28,7 @@ The following builder methods / properties are currently supported:
 | port()                   | port                     | `61616`       |
 | user()                   | user                     | `anonymous`   |
 | password()               | password                 | `null`        |
-| queueName()              | queueName                | `null`        |
+| queueName()              | queue.name               | `null`        |
 | connectionAttempts()     | connection.attempts      | `-1`          |
 | connectionAttemptsWait() | connection.attempts.wait | `1`           |
 | connectionFactory()      |                          | `null`        |
