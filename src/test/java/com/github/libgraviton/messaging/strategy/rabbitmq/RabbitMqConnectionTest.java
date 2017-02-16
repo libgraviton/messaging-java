@@ -5,10 +5,7 @@ import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.client.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,11 +33,15 @@ public class RabbitMqConnectionTest {
 
     @Before
     public void setUp() throws Exception{
-        rabbitChannel = mock(Channel.class);
-
         rabbitConnection = mock(Connection.class);
+
+        AMQP.Queue.DeclareOk declareOk = mock(AMQP.Queue.DeclareOk.class);
+        doReturn("generated-queue-name").when(declareOk).getQueue();
+
+        rabbitChannel = mock(Channel.class);
         doReturn(rabbitChannel).when(rabbitConnection).createChannel();
         doReturn(true).when(rabbitChannel).isOpen();
+        doReturn(declareOk).when(rabbitChannel).queueDeclare();
         doReturn(true).when(rabbitConnection).isOpen();
 
         rabbitFactory = mock(ConnectionFactory.class);
@@ -71,12 +72,12 @@ public class RabbitMqConnectionTest {
     }
 
     @Test
-    public void testConneectionName() {
+    public void testConnectionName() {
         assertEquals("exchange - queue", connection.getConnectionName());
     }
 
     @Test
-    public void testDefaultConfig() throws Exception {
+    public void testConnect() throws Exception {
         final boolean queueDurable= true;
         final boolean queueExclusive = false;
         final boolean queueAutoDelete = false;
@@ -88,6 +89,16 @@ public class RabbitMqConnectionTest {
         verify(rabbitChannel).exchangeDeclare("exchange", "direct", exchangeDurable);
         verify(rabbitChannel).queueBind("queue", "exchange", "routingKey");
     }
+
+    @Test
+    public void testConnectGeneratedQueue() throws Exception {
+        connection = new RabbitMqConnection.Builder().queueName(null).connectionFactory(rabbitFactory).build();
+
+        connection.open();
+
+        verify(rabbitChannel).queueDeclare();
+    }
+
 
     @Test
     public void testCustomConfig() throws Exception {

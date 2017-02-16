@@ -40,6 +40,8 @@ public class RabbitMqConnection extends QueueConnection {
 
     final private ConnectionFactory connectionFactory;
 
+    private String queueName;
+
     private Connection connection;
 
     private Channel channel;
@@ -54,6 +56,7 @@ public class RabbitMqConnection extends QueueConnection {
         exchangeType = builder.exchangeType;
         routingKey = builder.routingKey;
         connectionFactory = builder.connectionFactory;
+        queueName = super.queueName;
     }
 
     @Override
@@ -97,6 +100,8 @@ public class RabbitMqConnection extends QueueConnection {
                         queueAutoDelete,
                         QUEUE_ARGS
                 );
+            } else {
+                queueName = channel.queueDeclare().getQueue();
             }
             // If defined, use specific exchange and bind queue to it, otherwise use default exchange
             if (null != exchangeName) {
