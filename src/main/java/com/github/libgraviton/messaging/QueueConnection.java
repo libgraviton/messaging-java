@@ -293,6 +293,8 @@ abstract public class QueueConnection {
          * connecting endlessly.
          *
          * @param connectionAttempts The amount of connection attempts
+         *
+         * @return self
          */
         public ConcreteBuilder connectionAttempts(int connectionAttempts) {
             this.connectionAttempts = connectionAttempts;
@@ -303,7 +305,9 @@ abstract public class QueueConnection {
          * Sets the amount of seconds to wait between each connection attempt. If you want to wait less than 1 second,
          * you can just pass the value as a decimal (exception.g. 0.5 for half a second).
          *
-         * @param connectionAttemptWait The amount of seconds to wati.
+         * @param connectionAttemptWait The amount of seconds to wait.
+         *
+         * @return self
          */
         public ConcreteBuilder connectionAttemptsWait(double connectionAttemptWait) {
             this.connectionAttemptsWait = connectionAttemptWait;
@@ -314,6 +318,8 @@ abstract public class QueueConnection {
          * Applies property values of a given {@link Properties}.
          *
          * @param properties The properties instance
+         *
+         * @return self
          */
         public ConcreteBuilder applyProperties(Properties properties) {
             host(properties.getProperty("host", host))
@@ -332,6 +338,9 @@ abstract public class QueueConnection {
          * Applies the property values in a given context of a given {@link Properties}.
          *
          * @param properties The properties instance
+         * @param context The properties context
+         *
+         * @return self
          */
         public ConcreteBuilder applyProperties(Properties properties, String context) {
             return applyProperties(new ContextProperties(properties, context));
@@ -341,6 +350,8 @@ abstract public class QueueConnection {
          * Builds the RabbitMQ Connection.
          *
          * @return The RabbitMQ Connection
+         *
+         * @throws CannotBuildConnection If the connection cannot be built
          */
         abstract public QueueConnection build() throws CannotBuildConnection;
 
