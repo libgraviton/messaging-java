@@ -33,11 +33,13 @@ Make sure that `version` points to the newest release on maven central (see badg
 To publish messages you need an instance of `QueueConnection`, which represents the connection to the Message Queue.
 Once you have a `QueueConnection`, you can simply do the following to publish a message:
 ```java
+QueueConnection connection = new RabbitMqConnection.Builder().queueName("your-queue").build();
+
 try {
-    // connection is an instance of QueueConnection
     connection.publish("the message");
 } catch (CannotPublishMessage e) {
     // Message publishment failed for some reason.
+    fail(String.format("An exception occurred: '%s'", e.getClass().getName()));
 }
 ```
 
@@ -55,11 +57,13 @@ Consumer consumer = new Consumer() {
 
 };
 
+QueueConnection connection = new RabbitMqConnection.Builder().queueName("your-queue").build();
+
 try {
-    // connection is an instance of QueueConnection
     connection.consume(consumer);
 } catch (CannotRegisterConsumer e) {
     // Consumer registration failed for some reason.
+    fail(String.format("An exception occurred: '%s'", e.getClass().getName()));
 }
 ```
 
@@ -87,10 +91,12 @@ Consumer consumer = new AcknowledgingConsumer() {
 
 };
 
+QueueConnection connection = new RabbitMqConnection.Builder().queueName("your-queue").build();
+
 try {
-    // connection is an instance of QueueConnection
     connection.consume(consumer);
 } catch (CannotRegisterConsumer e) {
     // Consumer registration failed for some reason.
+    fail(String.format("An exception occurred: '%s'", e.getClass().getName()));
 }
 ```

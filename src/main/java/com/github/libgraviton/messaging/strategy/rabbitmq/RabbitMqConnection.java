@@ -1,5 +1,6 @@
 package com.github.libgraviton.messaging.strategy.rabbitmq;
 
+import com.github.libgraviton.messaging.config.PropertyUtil;
 import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
 import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.QueueConnection;
@@ -7,14 +8,12 @@ import com.github.libgraviton.messaging.exception.CannotCloseConnection;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.client.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -23,109 +22,50 @@ import java.util.concurrent.TimeoutException;
  */
 public class RabbitMqConnection extends QueueConnection {
 
-    private final Map<String, Object> QUEUE_ARGS = null;
+    static final private Map<String, Object> QUEUE_ARGS = null;
 
-    private boolean queueDurable = true;
+    final private boolean queueDurable;
 
-    private boolean queueExclusive = false;
+    final private boolean queueExclusive;
 
-    private boolean queueAutoDelete = false;
+    final private boolean queueAutoDelete;
 
-    private ConnectionFactory connectionFactory;
+    final private String exchangeName;
+
+    final private boolean exchangeDurable;
+
+    final private String exchangeType;
+
+    final private String routingKey;
+
+    final private ConnectionFactory connectionFactory;
+
+    private String queueName;
 
     private Connection connection;
 
     private Channel channel;
 
-    private String exchange;
-
-    private boolean exchangeDurable = false;
-
-    private String exchangeType = "direct";
-
-    private String routingKey;
-
-    /**
-     * Creates a RabbitMQ queue connection.
-     *
-     * @param queueName The name of the queue
-     * @param exchange The name of the exchange
-     * @param routingKey The routing key
-     * @param connectionFactory The RabbitMQ connection factory
-     */
-    public RabbitMqConnection(
-            String queueName,
-            String exchange,
-            String routingKey,
-            ConnectionFactory connectionFactory
-    ) {
-        super(queueName);
-        this.connectionFactory = connectionFactory;
-        this.exchange = exchange;
-        this.routingKey = routingKey;
-        connectionFactory.setAutomaticRecoveryEnabled(true);
-        connectionFactory.setExceptionHandler(new QueueExceptionLogger());
+    private RabbitMqConnection(Builder builder) {
+        super(builder);
+        queueDurable = builder.queueDurable;
+        queueExclusive = builder.queueExclusive;
+        queueAutoDelete = builder.queueAutoDelete;
+        exchangeName = builder.exchangeName;
+        exchangeDurable = builder.exchangeDurable;
+        exchangeType = builder.exchangeType;
+        routingKey = builder.routingKey;
+        connectionFactory = builder.connectionFactory;
+        queueName = super.queueName;
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public String getExchange() {
-        return exchange;
-    }
-
-    public String getRoutingKey() {
-        return routingKey;
-    }
-
-    /**
-     * Defines the durable parameter of {@link Channel#queueDeclare(String, boolean, boolean, boolean, Map)}.
-     *
-     * @param queueDurable Whether the queue is durable or not
-     */
-    public void setQueueDurable(boolean queueDurable) {
-        this.queueDurable = queueDurable;
-    }
-
-    /**
-     * Defines the exclusive parameter of {@link Channel#queueDeclare(String, boolean, boolean, boolean, Map)}.
-     *
-     * @param queueExclusive Whether the queue is exclusive or not
-     */
-    public void setQueueExclusive(boolean queueExclusive) {
-        this.queueExclusive = queueExclusive;
-    }
-
-    /**
-     * Defines the autoDelete parameter of {@link Channel#queueDeclare(String, boolean, boolean, boolean, Map)}.
-     *
-     * @param queueAutoDelete Whether the queue should be deleted automatically or not
-     */
-    public void setQueueAutoDelete(boolean queueAutoDelete) {
-        this.queueAutoDelete = queueAutoDelete;
-    }
-
-    /**
-     * Defines the durable parameter of {@link Channel#exchangeDeclare(String, String, boolean)}.
-     *
-     * @param exchangeDurable Whether the exchange is durable or not.
-     */
-    public void setExchangeDurable(boolean exchangeDurable) {
-        this.exchangeDurable = exchangeDurable;
-    }
-
-    /**
-     * Defines the type parameter of {@link Channel#exchangeDeclare(String, String, boolean)}.
-     *
-     * @param exchangeType The exchange type.
-     */
-    public void setExchangeType(String exchangeType) {
-        this.exchangeType = exchangeType;
+    @Override
+    public String getConnectionName() {
+        return String.format(
+                "%s - %s",
+                null == exchangeName ? "default-exchange" : exchangeName,
+                null == queueName ? "temporary-queue" : queueName
+        );
     }
 
     /**
@@ -139,8 +79,10 @@ public class RabbitMqConnection extends QueueConnection {
     }
 
     /**
-     * Opens the connection. If no exchange is defined, it will bind to the default exchange of RabbitMQ. But note that
-     * you need to define an exchange in order to publish messages.
+     * Opens the connection. If no exchangeName is defined, it will bind to the default exchangeName
+     * of RabbitMQ. But note that you need to define an exchangeName in order to publish messages.
+     *
+     * @see Builder#exchangeName(String)
      *
      * @throws CannotConnectToQueue If the connection cannot be established
      */
@@ -149,11 +91,22 @@ public class RabbitMqConnection extends QueueConnection {
         try {
             connection = connectionFactory.newConnection();
             channel = connection.createChannel();
-            channel.queueDeclare(queueName, queueDurable, queueExclusive, queueAutoDelete, QUEUE_ARGS);
+            // If defined, use specific queue and declare it, otherwise use random / temporary queue
+            if (null != queueName) {
+                channel.queueDeclare(
+                        queueName,
+                        queueDurable,
+                        queueExclusive,
+                        queueAutoDelete,
+                        QUEUE_ARGS
+                );
+            } else {
+                queueName = channel.queueDeclare().getQueue();
+            }
             // If defined, use specific exchange and bind queue to it, otherwise use default exchange
-            if (null != exchange) {
-                channel.exchangeDeclare(exchange, exchangeType, exchangeDurable);
-                channel.queueBind(queueName, exchange, routingKey);
+            if (null != exchangeName) {
+                channel.exchangeDeclare(exchangeName, exchangeType, exchangeDurable);
+                channel.queueBind(queueName, exchangeName, routingKey);
             }
         } catch (IOException | TimeoutException e) {
             throw new CannotConnectToQueue(queueName, e);
@@ -193,7 +146,7 @@ public class RabbitMqConnection extends QueueConnection {
     protected void publishMessage(String message) throws CannotPublishMessage {
         try {
             channel.basicPublish(
-                    exchange,
+                    exchangeName,
                     routingKey,
                     MessageProperties.PERSISTENT_TEXT_PLAIN,
                     message.getBytes(StandardCharsets.UTF_8)
@@ -224,4 +177,185 @@ public class RabbitMqConnection extends QueueConnection {
             channel = null;
         }
     }
+
+    Channel getChannel() {
+        return channel;
+    }
+
+    /**
+     * Builder class for creating RabbitMQ connections.
+     */
+    public static class Builder extends QueueConnection.Builder<Builder> {
+
+        static final private boolean AUTO_RECOVERY = true;
+
+        static final private ExceptionHandler EXCEPTION_HANDLER = new QueueExceptionLogger();
+
+        private boolean queueDurable = true;
+
+        private boolean queueExclusive = false;
+
+        private boolean queueAutoDelete = false;
+
+        private String exchangeName = null;
+
+        private boolean exchangeDurable = false;
+
+        private String exchangeType = "direct";
+
+        private String routingKey = null;
+
+        private String virtualHost = "/";
+
+        private ConnectionFactory connectionFactory;
+
+        /**
+         * Overrides some defaults.
+         */
+        public Builder() {
+            port(5672).user("guest").password("guest");
+        }
+
+        /**
+         * Defines the durability of the queue. Default is true. Only applies if a queue is specified.
+         *
+         * @see #queueName(String)
+         *
+         * @param queueDurable The queue's durability
+         *
+         * @return self
+         */
+        public Builder queueDurable(boolean queueDurable) {
+            this.queueDurable = queueDurable;
+            return this;
+        }
+
+        /**
+         * Defines the exclusivity of the queue. Default is false. Only applies if a queue is specified.
+         *
+         * @see #queueName(String)
+         *
+         * @param queueExclusive The queue's exclusivity
+         *
+         * @return self
+         */
+        public Builder queueExclusive(boolean queueExclusive) {
+            this.queueExclusive = queueExclusive;
+            return this;
+        }
+
+        /**
+         * Defines whether the queue should get automatically deleted. Default is false. Only applies if a queue is
+         * specified.
+         *
+         * @see #queueName(String)
+         *
+         * @param queueAutoDelete Whether the queue should get automatically deleted
+         *
+         * @return self
+         */
+        public Builder queueAutoDelete(boolean queueAutoDelete) {
+            this.queueAutoDelete = queueAutoDelete;
+            return this;
+        }
+
+        /**
+         * Sets the exchange name. Default is the RabbitMQ default exchange.
+         *
+         * @param exchangeName The exchange name
+         *
+         * @return self
+         */
+        public Builder exchangeName(String exchangeName) {
+            this.exchangeName = exchangeName;
+            return this;
+        }
+
+        /**
+         * Defines the type of the exchange. Default is 'direct'. Only applies if an exchange is specified.
+         *
+         * @see #exchangeName(String)
+         *
+         * @param exchangeType The exchange's type
+         *
+         * @return self
+         */
+        public Builder exchangeType(String exchangeType) {
+            this.exchangeType = exchangeType;
+            return this;
+        }
+
+        /**
+         * Defines the durability of the exchange. Default is true. Only applies if an exchange is specified.
+         *
+         * @see #exchangeName(String)
+         *
+         * @param exchangeDurable The exchange's durability
+         *
+         * @return self
+         */
+        public Builder exchangeDurable(boolean exchangeDurable) {
+            this.exchangeDurable = exchangeDurable;
+            return this;
+        }
+
+        /**
+         * Sets the routing key.
+         *
+         * @param routingKey The routing key
+         *
+         * @return self
+         */
+        public Builder routingKey(String routingKey) {
+            this.routingKey = routingKey;
+            return this;
+        }
+
+        /**
+         * Sets the RabbitMQ virtual host
+         *
+         * @param virtualHost The virtual host
+         *
+         * @return self
+         */
+        public Builder virtualHost(String virtualHost) {
+            this.virtualHost = virtualHost;
+            return this;
+        }
+
+        Builder connectionFactory(ConnectionFactory connectionFactory) {
+            this.connectionFactory = connectionFactory;
+            return this;
+        }
+
+        @Override
+        public Builder applyProperties(Properties properties) {
+            return super.applyProperties(properties)
+                    .queueDurable(PropertyUtil.getBoolean(properties, "queue.durable", queueDurable))
+                    .queueExclusive(PropertyUtil.getBoolean(properties, "queue.exclusive", queueExclusive))
+                    .queueAutoDelete(PropertyUtil.getBoolean(properties, "queue.autodelete", queueAutoDelete))
+                    .exchangeName(properties.getProperty("exchange.name", exchangeName))
+                    .exchangeType(properties.getProperty("exchange.type", exchangeType))
+                    .exchangeDurable(PropertyUtil.getBoolean(properties, "exchange.durable", exchangeDurable))
+                    .routingKey(properties.getProperty("routingkey", routingKey))
+                    .virtualHost(properties.getProperty("virtualhost", virtualHost));
+        }
+
+        @Override
+        public RabbitMqConnection build() {
+            if (null == connectionFactory) {
+                connectionFactory = new ConnectionFactory();
+                connectionFactory.setHost(host);
+                connectionFactory.setPort(port);
+                connectionFactory.setUsername(user);
+                connectionFactory.setPassword(password);
+                connectionFactory.setVirtualHost(virtualHost);
+                connectionFactory.setExceptionHandler(EXCEPTION_HANDLER);
+                connectionFactory.setAutomaticRecoveryEnabled(AUTO_RECOVERY);
+            }
+            return new RabbitMqConnection(this);
+        }
+
+    }
+
 }

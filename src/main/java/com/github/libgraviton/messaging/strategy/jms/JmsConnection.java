@@ -3,12 +3,11 @@ package com.github.libgraviton.messaging.strategy.jms;
 import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
 import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.QueueConnection;
-import com.github.libgraviton.messaging.exception.CannotCloseConnection;
-import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
-import com.github.libgraviton.messaging.exception.CannotPublishMessage;
-import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
+import com.github.libgraviton.messaging.exception.*;
+
 import javax.jms.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 /**
  * Represents a connection to a queue of a JMS compatible queue system. In case of a queue com.github.libgraviton.messaging.exception, the connection
@@ -16,25 +15,30 @@ import java.nio.charset.StandardCharsets;
  */
 public class JmsConnection extends QueueConnection {
 
-    private ConnectionFactory connectionFactory;
+    final private ConnectionFactory connectionFactory;
+
+    final private String messageSelector;
 
     private Connection connection;
 
     private Session session;
 
-    private String messageSelector;
-
-    protected Queue queue;
+    private Queue queue;
 
     /**
      * Creates a JMS queue connection.
      *
-     * @param queueName The name of the queue
-     * @param connectionFactory The JMS Connection factory
+     * @param builder The connection builder
      */
-    public JmsConnection(String queueName, ConnectionFactory connectionFactory) {
-        super(queueName);
-        this.connectionFactory = connectionFactory;
+    protected JmsConnection(JmsConnection.Builder builder) {
+        super(builder);
+        connectionFactory = builder.connectionFactory;
+        messageSelector = builder.messageSelector;
+    }
+
+    @Override
+    public String getConnectionName() {
+        return queueName;
     }
 
     /**
@@ -58,21 +62,6 @@ public class JmsConnection extends QueueConnection {
 
     public Queue getQueue() {
         return queue;
-    }
-
-    public String getMessageSelector() {
-        return messageSelector;
-    }
-
-    /**
-     * Defines the JMS Message selector for consumers.
-     *
-     * @see Session#createConsumer(Destination, String)
-     *
-     * @param messageSelector The JMS message selector
-     */
-    public void setMessageSelector(String messageSelector) {
-        this.messageSelector = messageSelector;
     }
 
     /**
@@ -157,6 +146,58 @@ public class JmsConnection extends QueueConnection {
             session = null;
             connection = null;
             queue = null;
+        }
+    }
+
+    public static class Builder<JmsBuilder extends Builder> extends QueueConnection.Builder<JmsBuilder> {
+
+        protected ConnectionFactory connectionFactory;
+
+        protected String messageSelector;
+
+        /**
+         * Apply defaults
+         */
+        public Builder() {
+            port(61616);
+        }
+
+        /**
+         * Defines the JMS connection factory.
+         *
+         * @param connectionFactory The connection factory
+         *
+         * @return self
+         */
+        public JmsBuilder connectionFactory(ConnectionFactory connectionFactory) {
+            this.connectionFactory = connectionFactory;
+            return (JmsBuilder) this;
+        }
+
+        /**
+         * Defines the JMS Message selector for consumers.
+         *
+         * @see Session#createConsumer(Destination, String)
+         *
+         * @param messageSelector The JMS message selector
+         *
+         * @return self
+         */
+        public JmsBuilder messageSelector(String messageSelector) {
+            this.messageSelector = messageSelector;
+            return (JmsBuilder) this;
+        }
+
+        @Override
+        public JmsBuilder applyProperties(Properties properties) {
+            super.applyProperties(properties)
+                    .messageSelector(properties.getProperty("message.selector", messageSelector));
+            return (JmsBuilder) this;
+        }
+
+        @Override
+        public JmsConnection build() throws CannotBuildConnection {
+            return new JmsConnection(this);
         }
     }
 }

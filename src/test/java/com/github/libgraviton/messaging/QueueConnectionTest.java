@@ -5,6 +5,7 @@ import com.github.libgraviton.messaging.exception.CannotCloseConnection;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
+import com.github.libgraviton.messaging.mocks.MockedQueueConnection;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,8 +23,7 @@ public class QueueConnectionTest {
 
     @Before
     public void setUp() throws Exception{
-        connection = mock(QueueConnection.class, CALLS_REAL_METHODS);
-        connection.setConnectionAttempts(1);
+        connection = spy(new MockedQueueConnection.Builder().connectionAttempts(1).build());
         doNothing().when(connection).openConnection();
         doNothing().when(connection).closeConnection();
         doNothing().when(connection).registerConsumer(any(Consumer.class));
@@ -46,10 +46,9 @@ public class QueueConnectionTest {
 
     @Test
     public void testOpenConnectionRetry() throws Exception {
+        connection = new MockedQueueConnection.Builder().connectionAttempts(5).connectionAttemptsWait(0).build();
+        connection = spy(connection);
         doThrow(new CannotConnectToQueue("gugus", null)).when(connection).openConnection();
-
-        connection.setConnectionAttempts(5);
-        connection.setConnectionAttemptSleep(0.001); // Save time (sleep for 1ms)
 
         boolean exceptionThrown = false;
         try {

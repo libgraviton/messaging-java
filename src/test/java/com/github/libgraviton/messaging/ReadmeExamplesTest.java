@@ -6,6 +6,7 @@ import com.github.libgraviton.messaging.exception.CannotAcknowledgeMessage;
 import com.github.libgraviton.messaging.exception.CannotConsumeMessage;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
+import com.github.libgraviton.messaging.strategy.rabbitmq.RabbitMqConnection;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,7 +16,7 @@ import static org.junit.Assert.*;
 /**
  * Ensures that the examples in the README are valid.
  *
- * IF YOU NEED TO CHANGE ANYTHING HERE, YOU NEED TO UPDATE THE README ACCORDINGLY.
+ * IF YOU NEED TO CHANGE ANYTHING HERE, YOU NEED TO UPDATE /README.md ACCORDINGLY.
  */
 public class ReadmeExamplesTest {
 
@@ -30,8 +31,9 @@ public class ReadmeExamplesTest {
 
     @Test
     public void testPublishExample() {
+        // QueueConnection connection = new RabbitMqConnection.Builder().queueName("your-queue").build();
+
         try {
-            // connection is an instance of QueueConnection
             connection.publish("the message");
         } catch (CannotPublishMessage e) {
             // Message publishment failed for some reason.
@@ -50,8 +52,9 @@ public class ReadmeExamplesTest {
 
         };
 
+        // QueueConnection connection = new RabbitMqConnection.Builder().queueName("your-queue").build();
+
         try {
-            // connection is an instance of QueueConnection
             connection.consume(consumer);
         } catch (CannotRegisterConsumer e) {
             // Consumer registration failed for some reason.
@@ -83,8 +86,9 @@ public class ReadmeExamplesTest {
 
         };
 
+        // QueueConnection connection = new RabbitMqConnection.Builder().queueName("your-queue").build();
+
         try {
-            // connection is an instance of QueueConnection
             connection.consume(consumer);
         } catch (CannotRegisterConsumer e) {
             // Consumer registration failed for some reason.
