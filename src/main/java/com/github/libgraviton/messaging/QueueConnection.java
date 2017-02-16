@@ -14,7 +14,7 @@ import java.util.Properties;
  */
 abstract public class QueueConnection {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(QueueConnection.class);
+    static final protected Logger LOG = LoggerFactory.getLogger(QueueConnection.class);
 
     final private int connectionAttempts;
 

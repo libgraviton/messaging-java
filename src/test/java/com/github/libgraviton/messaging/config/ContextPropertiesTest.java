@@ -23,18 +23,18 @@ public class ContextPropertiesTest {
         doReturn("value-2-1").when(defaultProperties).getProperty("config-2.property-1");
         doReturn("value-2-2").when(defaultProperties).getProperty("config-2.property-2");
 
-        contextProperties = new ContextProperties(defaultProperties, "context");
+        contextProperties = new ContextProperties(defaultProperties, "context.");
     }
 
     @Test
     public void testProppertyPrefix() {
-        contextProperties = new ContextProperties(defaultProperties, "config-1");
+        contextProperties = new ContextProperties(defaultProperties, "config-1.");
         assertEquals("value-1-1", contextProperties.getProperty("property-1"));
         assertEquals("value-1-1", contextProperties.getProperty("property-1", "default-value"));
         assertEquals("value-1-2", contextProperties.getProperty("property-2"));
         assertEquals("value-1-2", contextProperties.getProperty("property-2", "default-value"));
 
-        contextProperties = new ContextProperties(defaultProperties, "config-2");
+        contextProperties = new ContextProperties(defaultProperties, "config-2.");
         assertEquals("value-2-1", contextProperties.getProperty("property-1"));
         assertEquals("value-2-1", contextProperties.getProperty("property-1", "default-value"));
         assertEquals("value-2-2", contextProperties.getProperty("property-2"));

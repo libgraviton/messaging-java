@@ -30,7 +30,7 @@ public class ReadmeCorrectnessTest {
     @Test
     public void testPropertiesBuilderMethodListComplete() throws CannotBuildConnection {
         // ensure test fails if connectionFactory gets removed
-        builder.connectionFactory(null).applyProperties(properties, "context");
+        builder.connectionFactory(null).applyProperties(properties, "context.");
         builder.build();
 
         // 7 + 1 default port invocation

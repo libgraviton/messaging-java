@@ -19,7 +19,7 @@ public class ContextProperties extends Properties {
      */
     public ContextProperties(Properties properties, String context) {
         super(properties);
-        this.context = context + '.';
+        this.context = context;
     }
 
     @Override

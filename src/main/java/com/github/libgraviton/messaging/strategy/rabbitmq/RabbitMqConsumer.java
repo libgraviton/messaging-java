@@ -21,9 +21,9 @@ import java.nio.charset.StandardCharsets;
  */
 class RabbitMqConsumer extends DefaultConsumer implements MessageAcknowledger {
 
-    final private boolean ACK_PREV_MESSAGES = false;
+    static final private boolean ACK_PREV_MESSAGES = false;
 
-    final private Logger LOG = LoggerFactory.getLogger(getClass());
+    static final private Logger LOG = LoggerFactory.getLogger(RabbitMqConsumer.class);
 
     private RabbitMqConnection connection;
 

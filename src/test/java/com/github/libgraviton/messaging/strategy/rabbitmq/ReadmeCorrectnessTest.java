@@ -28,7 +28,7 @@ public class ReadmeCorrectnessTest {
     
     @Test
     public void testPropertiesBuilderMethodListComplete() {
-        builder.applyProperties(properties, "context");
+        builder.applyProperties(properties, "context.");
         builder.build();
         
         verify(properties, times(15)).getProperty(matches("context\\..*$")); // verify list is complete

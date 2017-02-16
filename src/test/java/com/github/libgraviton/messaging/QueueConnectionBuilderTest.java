@@ -28,7 +28,7 @@ public class QueueConnectionBuilderTest {
 
     @Test
     public void testPrefixedProperties() {
-        builder.applyProperties(properties, "context");
+        builder.applyProperties(properties, "context.");
         verify(properties, times(7)).getProperty(matches("^context\\..*$"));
     }
 

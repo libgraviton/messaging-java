@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 class RecoveringExceptionListener implements ExceptionListener {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(RecoveringExceptionListener.class);
+    static final protected Logger LOG = LoggerFactory.getLogger(RecoveringExceptionListener.class);
 
     protected JmsConnection connection;
 

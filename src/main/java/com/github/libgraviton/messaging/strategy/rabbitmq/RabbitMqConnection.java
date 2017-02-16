@@ -22,7 +22,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class RabbitMqConnection extends QueueConnection {
 
-    final private Map<String, Object> QUEUE_ARGS = null;
+    static final private Map<String, Object> QUEUE_ARGS = null;
 
     final private boolean queueDurable;
 
@@ -187,9 +187,9 @@ public class RabbitMqConnection extends QueueConnection {
      */
     public static class Builder extends QueueConnection.Builder<Builder> {
 
-        final private boolean AUTO_RECOVERY = true;
+        static final private boolean AUTO_RECOVERY = true;
 
-        final private ExceptionHandler EXCEPTION_HANDLER = new QueueExceptionLogger();
+        static final private ExceptionHandler EXCEPTION_HANDLER = new QueueExceptionLogger();
 
         private boolean queueDurable = true;
 

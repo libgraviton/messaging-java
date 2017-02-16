@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 
 public class ParallelConsumer implements Consumer {
 
-    final private Logger LOG = LoggerFactory.getLogger(getClass());
+    static final private Logger LOG = LoggerFactory.getLogger(ParallelConsumer.class);
 
     private Consumer consumer;
 
