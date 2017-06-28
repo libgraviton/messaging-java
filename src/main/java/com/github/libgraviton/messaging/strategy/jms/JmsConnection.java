@@ -14,9 +14,9 @@ import java.util.Properties;
  */
 public class JmsConnection extends QueueConnection {
 
-    final private ConnectionFactory connectionFactory;
+    private final ConnectionFactory connectionFactory;
 
-    final private String messageSelector;
+    private final String messageSelector;
 
     private Connection connection;
 
@@ -121,6 +121,17 @@ public class JmsConnection extends QueueConnection {
             producer.send(textMessage);
         } catch (JMSException e) {
             throw new CannotPublishMessage(message, e);
+        }
+    }
+
+    @Override
+    protected void publishMessage(byte[] message) throws CannotPublishMessage {
+        try {
+            MessageProducer producer = session.createProducer(queue);
+            BytesMessage bytesMessage = session.createBytesMessage();
+            producer.send(bytesMessage);
+        } catch (JMSException e) {
+            throw new CannotPublishMessage(new String(message), e);
         }
     }
 

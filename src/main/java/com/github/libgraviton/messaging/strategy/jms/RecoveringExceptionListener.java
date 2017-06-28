@@ -9,7 +9,7 @@ import javax.jms.JMSException;
 
 class RecoveringExceptionListener implements ExceptionListener {
 
-    static final protected Logger LOG = LoggerFactory.getLogger(RecoveringExceptionListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RecoveringExceptionListener.class);
 
     protected JmsConnection connection;
 

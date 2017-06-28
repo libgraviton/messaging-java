@@ -14,13 +14,13 @@ import java.util.Properties;
  */
 abstract public class QueueConnection {
 
-    static final protected Logger LOG = LoggerFactory.getLogger(QueueConnection.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QueueConnection.class);
 
-    final private int connectionAttempts;
+    private final int connectionAttempts;
 
-    final private double connectionAttemptsWait;
+    private final double connectionAttemptsWait;
 
-    final protected String queueName;
+    protected final String queueName;
 
     private Consumer consumer;
 
@@ -124,7 +124,7 @@ abstract public class QueueConnection {
     }
 
     /**
-     * Publishes a message on the queue. If the queue has not yet been opened, it will be opened, the message published
+     * Publishes a text message on the queue. If the queue has not yet been opened, it will be opened, the message published
      * and then closed again. If the queue has already been opened, it won't be closed after publishing the message.
      *
      * @param message The message to publish
@@ -132,13 +132,37 @@ abstract public class QueueConnection {
      * @throws CannotPublishMessage If the message cannot be published for some reason.
      */
     public void publish(String message) throws CannotPublishMessage {
-        LOG.info(String.format("Publishing message on queue '%s': '%s", getConnectionName(), message));
+        LOG.debug(String.format("Publishing text message on queue '%s': '%s", getConnectionName(), message));
         boolean wasClosed = false;
         try {
             wasClosed = openIfClosed();
             publishMessage(message);
         } catch (CannotConnectToQueue e) {
             throw new CannotPublishMessage(message, e);
+        } finally {
+            if (wasClosed) {
+                close();
+            }
+        }
+        LOG.info(String.format("Message successfully published on queue '%s'.", getConnectionName()));
+    }
+
+    /**
+     * Publishes a bytes message on the queue. If the queue has not yet been opened, it will be opened, the message published
+     * and then closed again. If the queue has already been opened, it won't be closed after publishing the message.
+     *
+     * @param message The message to publish
+     *
+     * @throws CannotPublishMessage If the message cannot be published for some reason.
+     */
+    public void publish(byte[] message) throws CannotPublishMessage {
+        LOG.debug(String.format("Publishing bytes message on queue '%s': '%s", getConnectionName(), new String(message)));
+        boolean wasClosed = false;
+        try {
+            wasClosed = openIfClosed();
+            publishMessage(message);
+        } catch (CannotConnectToQueue e) {
+            throw new CannotPublishMessage(new String(message), e);
         } finally {
             if (wasClosed) {
                 close();
@@ -198,13 +222,22 @@ abstract public class QueueConnection {
     abstract protected void registerConsumer(Consumer consumer) throws CannotRegisterConsumer;
 
     /**
-     * Does the queue system specific logic to publish a message on the queue.
+     * Does the queue system specific logic to publish a text message on the queue.
      *
      * @param message The message to publish
      *
      * @throws CannotPublishMessage If the message cannot be published.
      */
     abstract protected void publishMessage(String message) throws CannotPublishMessage;
+
+    /**
+     * Does the queue system specific logic to publish a bytes message on the queue.
+     *
+     * @param message The message to publish
+     *
+     * @throws CannotPublishMessage If the message cannot be published.
+     */
+    abstract protected void publishMessage(byte[] message) throws CannotPublishMessage;
 
     /**
      * Does the queue specific logic to close the connection.
