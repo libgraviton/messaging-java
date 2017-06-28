@@ -1,12 +1,13 @@
 package com.github.libgraviton.messaging.strategy.jms;
 
+import com.github.libgraviton.messaging.MessageAcknowledger;
 import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
 import com.github.libgraviton.messaging.consumer.Consumer;
-import com.github.libgraviton.messaging.MessageAcknowledger;
 import com.github.libgraviton.messaging.exception.CannotAcknowledgeMessage;
 import com.github.libgraviton.messaging.exception.CannotConsumeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.jms.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ import java.util.HashMap;
  */
 class JmsConsumer implements MessageListener, MessageAcknowledger {
 
-    static final private Logger LOG = LoggerFactory.getLogger(JmsConsumer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JmsConsumer.class);
 
     private Consumer consumer;
 

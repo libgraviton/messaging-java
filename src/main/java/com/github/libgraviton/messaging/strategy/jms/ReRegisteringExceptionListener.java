@@ -2,10 +2,14 @@ package com.github.libgraviton.messaging.strategy.jms;
 
 import com.github.libgraviton.messaging.consumer.Consumer;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jms.JMSException;
 
 class ReRegisteringExceptionListener extends RecoveringExceptionListener {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ReRegisteringExceptionListener.class);
 
     private Consumer consumer;
 

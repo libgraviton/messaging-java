@@ -1,15 +1,15 @@
 package com.github.libgraviton.messaging.strategy.jms;
 
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
-
-import javax.jms.ExceptionListener;
-import javax.jms.JMSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jms.ExceptionListener;
+import javax.jms.JMSException;
+
 class RecoveringExceptionListener implements ExceptionListener {
 
-    static final protected Logger LOG = LoggerFactory.getLogger(RecoveringExceptionListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RecoveringExceptionListener.class);
 
     protected JmsConnection connection;
 

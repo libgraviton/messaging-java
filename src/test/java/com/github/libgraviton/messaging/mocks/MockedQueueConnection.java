@@ -36,6 +36,11 @@ public class MockedQueueConnection extends QueueConnection {
     }
 
     @Override
+    protected void publishMessage(byte[] message) throws CannotPublishMessage {
+
+    }
+
+    @Override
     protected void closeConnection() throws CannotCloseConnection {
 
     }

@@ -176,7 +176,7 @@ public class RabbitMqConnectionTest {
     }
 
     @Test
-    public void testPublishMessage() throws Exception {
+    public void testPublishTextMessage() throws Exception {
         connection.publish("gugus");
         verify(rabbitChannel).basicPublish(
                 "exchange",
@@ -187,7 +187,7 @@ public class RabbitMqConnectionTest {
     }
 
     @Test
-    public void testPublishMessageFailed() throws Exception {
+    public void testPublishTextMessageFailed() throws Exception {
         thrown.expect(CannotPublishMessage.class);
 
         doThrow(new IOException()).when(rabbitChannel).basicPublish(
@@ -197,6 +197,32 @@ public class RabbitMqConnectionTest {
                 "gugus".getBytes(StandardCharsets.UTF_8)
         );
         connection.publish("gugus");
+    }
+
+    @Test
+    public void testPublishBytesMessage() throws Exception {
+        byte[] bytesMessage = new byte[]{1,2,3,4};
+        connection.publish(bytesMessage);
+        verify(rabbitChannel).basicPublish(
+                "exchange",
+                "routingKey",
+                MessageProperties.PERSISTENT_TEXT_PLAIN,
+                bytesMessage
+        );
+    }
+
+    @Test
+    public void testPublishBytesMessageFailed() throws Exception {
+        byte[] bytesMessage = new byte[]{1,2,3,4};
+        thrown.expect(CannotPublishMessage.class);
+
+        doThrow(new IOException()).when(rabbitChannel).basicPublish(
+                "exchange",
+                "routingKey",
+                MessageProperties.PERSISTENT_TEXT_PLAIN,
+                bytesMessage
+        );
+        connection.publish(bytesMessage);
     }
 
     @Test
