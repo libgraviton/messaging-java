@@ -85,14 +85,14 @@ public class QueueConnectionTest {
     }
 
     @Test
-    public void testPublishMessage() throws Exception {
+    public void testPublishTextMessage() throws Exception {
         connection.publish("gugus");
         verify(connection).publishMessage("gugus");
         assertFalse(connection.isOpen());
     }
 
     @Test
-    public void testPublishMessageAlreadyOpen() throws Exception {
+    public void testPublishTextMessageAlreadyOpen() throws Exception {
         doReturn(true).when(connection).isOpen();
 
         connection.publish("gugus");
@@ -102,11 +102,40 @@ public class QueueConnectionTest {
     }
 
     @Test
-    public void testPublishMessageFailed() throws Exception {
+    public void testPublishTextMessageFailed() throws Exception {
         thrown.expect(CannotPublishMessage.class);
 
         doThrow(new CannotPublishMessage("gugus", new Exception())).when(connection).publishMessage("gugus");
         connection.publish("gugus");
+    }
+
+
+    @Test
+    public void testPublishBytesMessage() throws Exception {
+        byte[] bytesMessage = new byte[]{1,2,3,4};
+        connection.publish(bytesMessage);
+        verify(connection).publishMessage(bytesMessage);
+        assertFalse(connection.isOpen());
+    }
+
+    @Test
+    public void testPublishBytesMessageAlreadyOpen() throws Exception {
+        byte[] bytesMessage = new byte[]{1,2,3,4};
+        doReturn(true).when(connection).isOpen();
+
+        connection.publish(bytesMessage);
+
+        verify(connection, never()).open();
+        verify(connection, never()).close();
+    }
+
+    @Test
+    public void testPublishBytesMessageFailed() throws Exception {
+        byte[] bytesMessage = new byte[]{1,2,3,4};
+        thrown.expect(CannotPublishMessage.class);
+
+        doThrow(new CannotPublishMessage(new String(bytesMessage), new Exception())).when(connection).publishMessage(bytesMessage);
+        connection.publish(bytesMessage);
     }
 
     @Test

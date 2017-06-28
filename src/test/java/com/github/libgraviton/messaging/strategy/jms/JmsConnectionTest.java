@@ -128,21 +128,41 @@ public class JmsConnectionTest {
     }
 
     @Test
-    public void testPublishMessage() throws Exception {
+    public void testPublishTextMessage() throws Exception {
         MessageProducer jmsProducer = mock(MessageProducer.class);
 
-        doReturn(mock(BytesMessage.class)).when(jmsSession).createBytesMessage();
+        doReturn(mock(TextMessage.class)).when(jmsSession).createTextMessage("gugus");
         doReturn(jmsProducer).when(jmsSession).createProducer(jmsQueue);
         connection.publish("gugus");
-        verify(jmsProducer).send(any(BytesMessage.class));
+        verify(jmsProducer).send(any(TextMessage.class));
     }
 
     @Test
-    public void testPublishMessageFailed() throws Exception {
+    public void testPublishTextMessageFailed() throws Exception {
         thrown.expect(CannotPublishMessage.class);
 
         doThrow(new JMSException("gugus")).when(jmsSession).createProducer(jmsQueue);
         connection.publish("gugus");
+    }
+
+    @Test
+    public void testPublishBytesMessage() throws Exception {
+        byte[] bytesMessage = new byte[]{1,2,3,4};
+        MessageProducer jmsProducer = mock(MessageProducer.class);
+
+        doReturn(mock(BytesMessage.class)).when(jmsSession).createBytesMessage();
+        doReturn(jmsProducer).when(jmsSession).createProducer(jmsQueue);
+        connection.publish(bytesMessage);
+        verify(jmsProducer).send(any(BytesMessage.class));
+    }
+
+    @Test
+    public void testPublishBytesMessageFailed() throws Exception {
+        byte[] bytesMessage = new byte[]{1,2,3,4};
+        thrown.expect(CannotPublishMessage.class);
+
+        doThrow(new JMSException(new String(bytesMessage))).when(jmsSession).createProducer(jmsQueue);
+        connection.publish(bytesMessage);
     }
 
     @Test
