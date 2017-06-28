@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 class QueueExceptionLogger extends DefaultExceptionHandler {
 
-    static final private Logger LOG = LoggerFactory.getLogger(QueueExceptionLogger.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QueueExceptionLogger.class);
 
     @Override
     public void handleConnectionRecoveryException(Connection conn, Throwable exception) {

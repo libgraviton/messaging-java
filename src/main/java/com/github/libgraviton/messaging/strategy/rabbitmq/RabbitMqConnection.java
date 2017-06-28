@@ -1,9 +1,9 @@
 package com.github.libgraviton.messaging.strategy.rabbitmq;
 
+import com.github.libgraviton.messaging.QueueConnection;
 import com.github.libgraviton.messaging.config.PropertyUtil;
 import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
 import com.github.libgraviton.messaging.consumer.Consumer;
-import com.github.libgraviton.messaging.QueueConnection;
 import com.github.libgraviton.messaging.exception.CannotCloseConnection;
 import com.github.libgraviton.messaging.exception.CannotConnectToQueue;
 import com.github.libgraviton.messaging.exception.CannotPublishMessage;
@@ -22,23 +22,23 @@ import java.util.concurrent.TimeoutException;
  */
 public class RabbitMqConnection extends QueueConnection {
 
-    static final private Map<String, Object> QUEUE_ARGS = null;
+    private static final Map<String, Object> QUEUE_ARGS = null;
 
-    final private boolean queueDurable;
+    private final  boolean queueDurable;
 
-    final private boolean queueExclusive;
+    private final boolean queueExclusive;
 
-    final private boolean queueAutoDelete;
+    private final boolean queueAutoDelete;
 
-    final private String exchangeName;
+    private final String exchangeName;
 
-    final private boolean exchangeDurable;
+    private final boolean exchangeDurable;
 
-    final private String exchangeType;
+    private final String exchangeType;
 
-    final private String routingKey;
+    private final String routingKey;
 
-    final private ConnectionFactory connectionFactory;
+    private final ConnectionFactory connectionFactory;
 
     private String queueName;
 
@@ -136,7 +136,7 @@ public class RabbitMqConnection extends QueueConnection {
     }
 
     /**
-     * Publishes a message on the queue. Note that this method uses UTF-8 encoding only.
+     * Publishes a text message on the queue. Note that this method uses UTF-8 encoding only.
      *
      * @param message The message to publish
      *
@@ -144,15 +144,27 @@ public class RabbitMqConnection extends QueueConnection {
      */
     @Override
     protected void publishMessage(String message) throws CannotPublishMessage {
+        publishMessage(message.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Publishes a bytes message on the queue.
+     *
+     * @param message The message to publish
+     *
+     * @throws CannotPublishMessage If the message cannot be published.
+     */
+    @Override
+    protected void publishMessage(byte[] message) throws CannotPublishMessage {
         try {
             channel.basicPublish(
                     exchangeName,
                     routingKey,
                     MessageProperties.PERSISTENT_TEXT_PLAIN,
-                    message.getBytes(StandardCharsets.UTF_8)
+                    message
             );
         } catch (IOException e) {
-            throw new CannotPublishMessage(message, e);
+            throw new CannotPublishMessage(new String(message), e);
         }
     }
 
