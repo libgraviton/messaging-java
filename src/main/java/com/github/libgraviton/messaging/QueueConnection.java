@@ -157,12 +157,13 @@ abstract public class QueueConnection {
     public boolean openIfClosed() throws CannotConnectToQueue {
         if (!isOpen()) {
             open();
-            LOG.info(String.format(
-                    "Connection to queue '%s' has already been opened. Skipping...",
-                    getConnectionName()
-            ));
             return true;
         }
+        LOG.info(String.format(
+                "Connection to queue '%s' has already been opened. Skipping...",
+                getConnectionName()
+        ));
+
         return false;
     }
 
