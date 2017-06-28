@@ -1,12 +1,11 @@
 package com.github.libgraviton.messaging.strategy.jms;
 
+import com.github.libgraviton.messaging.QueueConnection;
 import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
 import com.github.libgraviton.messaging.consumer.Consumer;
-import com.github.libgraviton.messaging.QueueConnection;
 import com.github.libgraviton.messaging.exception.*;
 
 import javax.jms.*;
-import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 /**
@@ -108,7 +107,7 @@ public class JmsConnection extends QueueConnection {
     }
 
     /**
-     * Publishes a {@link BytesMessage}. Note that every message is considered UTF-8 encoded.
+     * Publishes a {@link TextMessage}. Note that every message is considered UTF-8 encoded.
      *
      * @param message The message to publish
      *
@@ -118,9 +117,8 @@ public class JmsConnection extends QueueConnection {
     protected void publishMessage(String message) throws CannotPublishMessage {
         try {
             MessageProducer producer = session.createProducer(queue);
-            BytesMessage bytesMessage = session.createBytesMessage();
-            bytesMessage.writeBytes(message.getBytes(StandardCharsets.UTF_8));
-            producer.send(bytesMessage);
+            TextMessage textMessage = session.createTextMessage(message);
+            producer.send(textMessage);
         } catch (JMSException e) {
             throw new CannotPublishMessage(message, e);
         }
