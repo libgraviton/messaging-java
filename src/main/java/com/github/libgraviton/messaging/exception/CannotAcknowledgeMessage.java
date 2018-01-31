@@ -18,21 +18,30 @@ public class CannotAcknowledgeMessage extends IOException {
         this(acknowledger, messageId, "An com.github.libgraviton.messaging.exception occurred", cause);
     }
 
+    private static String getErrorMessage(MessageAcknowledger acknowledger, String messageId, String reason) {
+        if (messageId == null) {
+            return String.format(
+                "Acknowledger '%s' is unable to acknowledge message. Reason: '%s'.",
+                acknowledger,
+                reason);
+        } else {
+            return String.format(
+                "Acknowledger '%s' is unable to acknowledge message with id '%s'. Reason: '%s'.",
+                acknowledger,
+                messageId,
+                reason
+            );
+        }
+    }
+
     private CannotAcknowledgeMessage(
             MessageAcknowledger acknowledger,
             String messageId,
             String reason,
             Exception cause
     ) {
-        super(
-                String.format(
-                        "Acknowledger '%s' is unable to acknowledge message with id '%s'. Reason: '%s'.",
-                        acknowledger,
-                        messageId,
-                        reason
-                ),
-                cause
-        );
+        super(getErrorMessage(acknowledger,messageId,reason),cause);
+
         this.acknowledger = acknowledger;
         this.messageId = messageId;
     }

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 
 /**
  * Wraps an instance of {@link Consumer} in order to consume from a JMS based queue.
@@ -20,26 +19,24 @@ import java.util.HashMap;
  * {@link AcknowledgingConsumer}, it will do the JMS acknowledgment as soon as it receives the acknowledgment from the
  * wrapped consumer.
  */
-class JmsConsumer implements MessageListener, MessageAcknowledger {
+class JmsConsumer implements MessageListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(JmsConsumer.class);
-
     private Consumer consumer;
-
-    private HashMap<String, Message> messages;
 
     JmsConsumer(Consumer consumer) {
         this.consumer = consumer;
-        messages = new HashMap<>();
     }
 
     @Override
     public void onMessage(Message jmsMessage) {
         LOG.debug(String.format("Received message of type '%s' from queue.", jmsMessage.getClass().getName()));
         String message;
+        String messageId = null;
+
         try {
-            String messageId = jmsMessage.getJMSMessageID();
-            messages.put(messageId, jmsMessage);
+            messageId = jmsMessage.getJMSMessageID();
+
             if (jmsMessage instanceof TextMessage) {
                 message = ((TextMessage) jmsMessage).getText();
             } else if (jmsMessage instanceof BytesMessage) {
@@ -51,35 +48,29 @@ class JmsConsumer implements MessageListener, MessageAcknowledger {
                 ));
                 return;
             }
-            consumer.consume(jmsMessage.getJMSMessageID(), message);
-            if (!(consumer instanceof AcknowledgingConsumer)) {
-                acknowledge(messageId);
-            }
+
+            consumer.consume(messageId, message);
         } catch (JMSException | CannotConsumeMessage e) {
             LOG.error("Could not process feedback message.", e);
         } catch (Exception e) {
             // Catch com.github.libgraviton.messaging.exception to avoid endless loop because the message will trigger 'onMessage' again and again.
             LOG.error("Unexpected error occurred while processing queue feedback message.", e);
+        } finally {
+            if (!(consumer instanceof AcknowledgingConsumer)) {
+                acknowledge(jmsMessage,messageId);
+            }
         }
-
     }
 
-    @Override
-    public void acknowledge(String messageId) throws CannotAcknowledgeMessage {
-        Message jmsMessage = messages.get(messageId);
-        if (null == jmsMessage) {
-            throw new CannotAcknowledgeMessage(
-                    this,
-                    messageId,
-                    String.format("Message with id '%s' is unknown.", messageId)
-            );
-        }
+    private void acknowledge(Message jmsMessage,String messageId) {
         try {
             jmsMessage.acknowledge();
         } catch (JMSException e) {
-            throw new CannotAcknowledgeMessage(this, messageId, e);
-        } finally {
-            messages.remove(messageId);
+            try {
+                throw new CannotAcknowledgeMessage((MessageAcknowledger)this, messageId, e);
+            } catch (CannotAcknowledgeMessage cam) {
+                LOG.error(cam.getMessage());
+            }
         }
     }
 
