@@ -21,7 +21,7 @@ import java.util.HashMap;
  */
 class JmsConsumer implements MessageListener, MessageAcknowledger {
 
-    static final private Logger LOG = LoggerFactory.getLogger(JmsConsumer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JmsConsumer.class);
 
     private Consumer consumer;
 
