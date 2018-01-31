@@ -1,15 +1,15 @@
 package com.github.libgraviton.messaging.strategy.jms;
 
-import com.github.libgraviton.messaging.MessageAcknowledger;
 import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
 import com.github.libgraviton.messaging.consumer.Consumer;
+import com.github.libgraviton.messaging.MessageAcknowledger;
 import com.github.libgraviton.messaging.exception.CannotAcknowledgeMessage;
 import com.github.libgraviton.messaging.exception.CannotConsumeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.jms.*;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 /**
  * Wraps an instance of {@link Consumer} in order to consume from a JMS based queue.
@@ -19,13 +19,18 @@ import java.nio.charset.StandardCharsets;
  * {@link AcknowledgingConsumer}, it will do the JMS acknowledgment as soon as it receives the acknowledgment from the
  * wrapped consumer.
  */
-class JmsConsumer implements MessageListener {
+class JmsConsumer implements MessageListener, MessageAcknowledger {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JmsConsumer.class);
+    static final private Logger LOG = LoggerFactory.getLogger(JmsConsumer.class);
+
     private Consumer consumer;
+
+    private HashMap<String, Message> messages;
 
     JmsConsumer(Consumer consumer) {
         this.consumer = consumer;
+        // onMessage() can be called by several threads.
+        messages = new HashMap<>();
     }
 
     @Override
@@ -33,23 +38,21 @@ class JmsConsumer implements MessageListener {
         LOG.debug(String.format("Received message of type '%s' from queue.", jmsMessage.getClass().getName()));
         String message;
         String messageId = null;
-
         try {
             messageId = jmsMessage.getJMSMessageID();
-
+            messages.put(messageId, jmsMessage);
             if (jmsMessage instanceof TextMessage) {
                 message = ((TextMessage) jmsMessage).getText();
             } else if (jmsMessage instanceof BytesMessage) {
                 message = extractBody((BytesMessage) jmsMessage);
             } else {
                 LOG.warn(String.format(
-                        "Message of type '%s' cannot be handled and got ignored.",
-                        jmsMessage.getClass().getName()
+                    "Message of type '%s' cannot be handled and got ignored.",
+                    jmsMessage.getClass().getName()
                 ));
                 return;
             }
-
-            consumer.consume(messageId, message);
+            consumer.consume(jmsMessage.getJMSMessageID(), message);
         } catch (JMSException | CannotConsumeMessage e) {
             LOG.error("Could not process feedback message.", e);
         } catch (Exception e) {
@@ -57,20 +60,31 @@ class JmsConsumer implements MessageListener {
             LOG.error("Unexpected error occurred while processing queue feedback message.", e);
         } finally {
             if (!(consumer instanceof AcknowledgingConsumer)) {
-                acknowledge(jmsMessage,messageId);
+                try {
+                    acknowledge(messageId);
+                } catch (CannotAcknowledgeMessage cam) {
+                    LOG.error(cam.getMessage());
+                }
             }
         }
     }
 
-    private void acknowledge(Message jmsMessage,String messageId) {
+    @Override
+    public void acknowledge(String messageId) throws CannotAcknowledgeMessage {
+        Message jmsMessage = messages.get(messageId);
+        if (null == jmsMessage) {
+            throw new CannotAcknowledgeMessage(
+                this,
+                messageId,
+                String.format("Message with id '%s' is unknown.", messageId)
+            );
+        }
         try {
             jmsMessage.acknowledge();
         } catch (JMSException e) {
-            try {
-                throw new CannotAcknowledgeMessage((MessageAcknowledger)this, messageId, e);
-            } catch (CannotAcknowledgeMessage cam) {
-                LOG.error(cam.getMessage());
-            }
+            throw new CannotAcknowledgeMessage(this, messageId, e);
+        } finally {
+            messages.remove(messageId);
         }
     }
 
