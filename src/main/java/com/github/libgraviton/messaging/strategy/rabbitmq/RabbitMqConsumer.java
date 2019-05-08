@@ -3,6 +3,7 @@ package com.github.libgraviton.messaging.strategy.rabbitmq;
 import com.github.libgraviton.messaging.MessageAcknowledger;
 import com.github.libgraviton.messaging.consumer.AcknowledgingConsumer;
 import com.github.libgraviton.messaging.consumer.Consumer;
+import com.github.libgraviton.messaging.consumer.PropertyConsumer;
 import com.github.libgraviton.messaging.exception.CannotAcknowledgeMessage;
 import com.github.libgraviton.messaging.exception.CannotRegisterConsumer;
 import com.rabbitmq.client.*;
@@ -52,6 +53,11 @@ class RabbitMqConsumer extends DefaultConsumer implements MessageAcknowledger {
                 connection.getConnectionName(),
                 message
         ));
+
+        if (consumer instanceof PropertyConsumer) {
+            ((PropertyConsumer) consumer).setBasicProperties(properties);
+        }
+
         consumer.consume(String.valueOf(deliveryTag), message);
     }
 
