@@ -24,7 +24,9 @@ public class RabbitMqConnection extends QueueConnection {
 
     private static final Map<String, Object> QUEUE_ARGS = null;
 
-    private final  boolean queueDurable;
+    private static final String queueAutoRecoveryEnv = "QUEUE_AUTORECOVERY";
+
+    private final boolean queueDurable;
 
     private final boolean queueExclusive;
 
@@ -199,9 +201,9 @@ public class RabbitMqConnection extends QueueConnection {
      */
     public static class Builder extends QueueConnection.Builder<Builder> {
 
-        static final private boolean AUTO_RECOVERY = true;
-
         static final private ExceptionHandler EXCEPTION_HANDLER = new QueueExceptionLogger();
+
+        private boolean autoRecovery = true;
 
         private boolean queueDurable = true;
 
@@ -226,6 +228,20 @@ public class RabbitMqConnection extends QueueConnection {
          */
         public Builder() {
             port(5672).user("guest").password("guest");
+        }
+
+        /**
+         * Defines if we should do auto recovery, defaults to true.
+         *
+         * @see #queueName(String)
+         *
+         * @param autoRecovery The queue's durability
+         *
+         * @return self
+         */
+        public Builder autoRecovery(boolean autoRecovery) {
+            this.autoRecovery = autoRecovery;
+            return this;
         }
 
         /**
@@ -343,6 +359,7 @@ public class RabbitMqConnection extends QueueConnection {
         @Override
         public Builder applyProperties(Properties properties) {
             return super.applyProperties(properties)
+                    .autoRecovery(PropertyUtil.getBoolean(properties, "queue.autorecovery", autoRecovery))
                     .queueDurable(PropertyUtil.getBoolean(properties, "queue.durable", queueDurable))
                     .queueExclusive(PropertyUtil.getBoolean(properties, "queue.exclusive", queueExclusive))
                     .queueAutoDelete(PropertyUtil.getBoolean(properties, "queue.autodelete", queueAutoDelete))
@@ -357,13 +374,18 @@ public class RabbitMqConnection extends QueueConnection {
         public RabbitMqConnection build() {
             if (null == connectionFactory) {
                 connectionFactory = new ConnectionFactory();
+                connectionFactory.setAutomaticRecoveryEnabled(autoRecovery);
                 connectionFactory.setHost(host);
                 connectionFactory.setPort(port);
                 connectionFactory.setUsername(user);
                 connectionFactory.setPassword(password);
                 connectionFactory.setVirtualHost(virtualHost);
                 connectionFactory.setExceptionHandler(EXCEPTION_HANDLER);
-                connectionFactory.setAutomaticRecoveryEnabled(AUTO_RECOVERY);
+
+                // automatic recovery override from env
+                if (System.getenv(queueAutoRecoveryEnv) != null && System.getenv(queueAutoRecoveryEnv).equals("false")) {
+                    connectionFactory.setAutomaticRecoveryEnabled(false);
+                }
             }
             return new RabbitMqConnection(this);
         }

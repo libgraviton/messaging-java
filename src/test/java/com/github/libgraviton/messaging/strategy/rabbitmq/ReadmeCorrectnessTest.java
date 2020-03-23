@@ -31,7 +31,7 @@ public class ReadmeCorrectnessTest {
         builder.applyProperties(properties, "context.");
         builder.build();
         
-        verify(properties, times(15)).getProperty(matches("context\\..*$")); // verify list is complete
+        verify(properties, times(16)).getProperty(matches("context\\..*$")); // verify list is complete
         verify(properties).getProperty("context.host");
         verify(properties).getProperty("context.port");
         verify(properties).getProperty("context.user");
@@ -47,6 +47,7 @@ public class ReadmeCorrectnessTest {
         verify(properties).getProperty("context.exchange.durable");
         verify(properties).getProperty("context.routingkey");
         verify(properties).getProperty("context.virtualhost");
+        verify(properties).getProperty("context.queue.autorecovery");
     }
 
     @Test
@@ -69,6 +70,7 @@ public class ReadmeCorrectnessTest {
         verify(properties).getProperty("exchange.durable", "false");
         verify(properties).getProperty("routingkey", null);
         verify(properties).getProperty("virtualhost", "/");
+        verify(properties).getProperty("queue.autorecovery", "true");
     }
 
 }
