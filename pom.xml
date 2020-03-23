@@ -4,7 +4,7 @@
   <groupId>com.github.libgraviton</groupId>
   <artifactId>messaging</artifactId>
   <packaging>jar</packaging>
-  <version>0.4.0</version>
+  <version>0.5.0</version>
   <name>Messaging Integration Library</name>
   <url>https://github.com/libgraviton/messaging-java</url>
   <inceptionYear>2017</inceptionYear>
@@ -41,7 +41,7 @@
     <dependency>
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
-      <version>5.5.0</version>
+      <version>5.8.0</version>
     </dependency>
     <dependency>
       <groupId>javax.jms</groupId>
@@ -57,7 +57,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>4.13</version>
       <scope>test</scope>
     </dependency>
     <dependency>
